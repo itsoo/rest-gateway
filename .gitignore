@@ -1,15 +1,9 @@
-### Vert.x ###
-.vertx/
-
 ### Intellij IDEA ###
 *.iml
 .idea/
 *.ipr
 .DS_Store
 
-### Gradle ###
-.gradle
-/buildTool/
-gradle-app.setting
-!gradle-wrapper.jar
-.gradletasknamecache
+### maven ###
+target/
+*.class
