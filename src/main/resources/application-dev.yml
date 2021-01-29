@@ -1,0 +1,45 @@
+rest-gateway:
+  # 请求流速限制
+  rate-limiter: 2000.0
+  # 触发熔断的失败速率
+  rate-failure: 3.0
+  # 黑名单开关
+  black-enable: true
+  # 黑名单列表（支持 IP 段配置）
+  black-list:
+    - unknown
+    - 127.0.0.9/9
+    - 9.9.9.9/9
+  # 网络超时相关配置
+  max-connections: 2000        # 最大连接数
+  max-idle-time: 40000         # 最大空闲时间（毫秒）
+  acquire-timeout: 6000        # 取得连接的最大等待时间（毫秒）
+  read-timeout: 1000           # 请求超时时间（毫秒）
+  write-timeout: 1000          # 响应超时时间（毫秒）
+  connect-timeout: 1000        # 连接超时时间（毫秒）
+  tcp-nodelay: true            # tcp 无延迟
+  so-keep-alive: true          # keep-alive
+  compress: false              # 开启压缩
+  # 过滤掉的请求头
+  filter-headers:
+    - host
+    - via
+    - cookie
+  # 不需要鉴权的 routers（router name）
+  non-auth:
+    - comment
+  # 路由的配置信息
+  routers:
+    - name: comment            # router name
+      lb-type: RR              # 负载均衡策略（round-robin=RR, random=R）
+      prefix: /api/v1/comment  # 匹配请求路径的前缀
+      services:                # service 列表
+        - 127.0.0.1:8080
+        - 127.0.0.1:8081
+        - 127.0.0.1:8082
+        - 127.0.0.1:8083
+    - name: product
+      prefix: /api/v1/product
+      services:
+        - 127.0.0.1:8090
+        - 127.0.0.1:8091

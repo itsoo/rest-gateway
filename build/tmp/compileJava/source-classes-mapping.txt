@@ -1,4 +1,0 @@
-com/cupshe/restgateway/Application.java
- com.cupshe.restgateway.Application
-vertx/launcher/StartupVerticle.java
- vertx.launcher.StartupVerticle
