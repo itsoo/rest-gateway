@@ -26,7 +26,7 @@ public class RequestCaller {
 
     private Map<String, Boolean> callStatus;
 
-    private Map<String, LoadBalancer> callRouters;
+    private Map<String, AbstractLoadBalancer> callRouters;
 
     public RequestCaller(RestGatewayProperties properties) {
         initial(properties.getRouters());
@@ -46,7 +46,7 @@ public class RequestCaller {
 
     public HostStatus next(@NonNull String prefix) {
         Assert.notNull(prefix, "'prefix' cannot be null.");
-        for (Map.Entry<String, LoadBalancer> me : callRouters.entrySet()) {
+        for (Map.Entry<String, AbstractLoadBalancer> me : callRouters.entrySet()) {
             if (prefix.startsWith(me.getKey())) {
                 return me.getValue().next();
             }
@@ -55,7 +55,7 @@ public class RequestCaller {
         throw new NotFoundException();
     }
 
-    private interface LoadBalancer {
+    private static abstract class AbstractLoadBalancer {
 
         /**
          * init data-list
@@ -63,7 +63,7 @@ public class RequestCaller {
          * @param services List of String
          * @return List of HostStatus
          */
-        default List<HostStatus> init(List<String> services) {
+        protected List<HostStatus> init(List<String> services) {
             return services
                     .parallelStream()
                     .map(t -> new HostStatus(t, true))
@@ -76,7 +76,7 @@ public class RequestCaller {
          * @param services List of HostStatus
          * @return List of HostStatus
          */
-        default List<HostStatus> aliveList(List<HostStatus> services) {
+        protected List<HostStatus> aliveList(List<HostStatus> services) {
             return services
                     .parallelStream()
                     .filter(HostStatus::isStatus)
@@ -89,13 +89,13 @@ public class RequestCaller {
          * @return next remote host
          */
         @NonNull
-        HostStatus next();
+        abstract HostStatus next();
     }
 
     /**
      * round-robin (RR)
      */
-    private static class RoundRobinLoadBalancer implements LoadBalancer {
+    private static class RoundRobinLoadBalancer extends AbstractLoadBalancer {
 
         private final AtomicInteger i = new AtomicInteger(0);
 
@@ -112,11 +112,11 @@ public class RequestCaller {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int curr, next, size = list.size() - 1;
+            int curr, next, size = list.size();
 
             do {
                 curr = i.get();
-                next = curr >= size ? 0 : curr + 1;
+                next = curr < size ? (curr + 1) : 0;
             } while (!i.compareAndSet(curr, next));
 
             return list.get(curr);
@@ -126,7 +126,7 @@ public class RequestCaller {
     /**
      * random (R)
      */
-    private static class RandomLoadBalancer implements LoadBalancer {
+    private static class RandomLoadBalancer extends AbstractLoadBalancer {
 
         private final List<HostStatus> services;
 

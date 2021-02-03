@@ -98,7 +98,7 @@ public class Breaker {
 
             do {
                 curr = i.get();
-                next = curr + 1 % queues.length;
+                next = (curr + 1) % queues.length;
             } while (!i.compareAndSet(curr, next));
         }
     }
