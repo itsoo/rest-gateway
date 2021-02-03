@@ -53,7 +53,9 @@ public class RequestProcessor {
             return Headers.Values.UNKNOWN;
         }
 
-        return Headers.Values.BINARY_ADDRESS.equals(result) ? Headers.Values.LOOP_BACK : result;
+        return Headers.Values.BINARY_ADDRESS.equals(result)
+                ? Headers.Values.LOOP_BACK
+                : result;
     }
 
     @SuppressWarnings("unchecked")
