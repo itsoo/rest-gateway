@@ -44,9 +44,6 @@ public class PostFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-
-        // TODO 并发下的负载均衡的问题！！！！
-
         String reqPath = Filters.getPath(exchange);
         HostStatus remoteHost = getRemoteHost(exchange, reqPath);
         exchange.getAttributes().put(Filters.REMOTE_HOST_CACHE_KEY, remoteHost);
