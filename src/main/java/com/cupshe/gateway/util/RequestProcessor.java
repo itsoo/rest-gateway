@@ -61,15 +61,21 @@ public class RequestProcessor {
         RequestBodySpec result = webClient
                 .method(attr.getMethod())
                 .uri(url)
-                .headers(h -> attr.getHeaders().forEach(h::addAll))
-                .cookies(c -> attr.getCookies().forEach((k, v) -> v.forEach(t -> c.add(k, t.getValue()))))
-                .header(Headers.X_CALL_SOURCE, Headers.Values.X_CALL_SOURCE);
-        // set remote-host
-        if (!attr.getHost().contains(Symbols.COLON)) {
-            result.header(Headers.ORIGIN_IP, attr.getHost());
-            result.header(Headers.X_ORIGIN_IP, attr.getHost());
-            result.header(Headers.X_FORWARDED_FOR, attr.getHost());
-        }
+                .cookies(c -> attr.getCookies().forEach(c::addAll))
+                .headers(h -> {
+                    attr.getHeaders().forEach((k, v) -> {
+                        if (!Headers.Ignores.contains(k)) {
+                            h.put(k, v);
+                        }
+                    });
+                    h.set(Headers.X_CALL_SOURCE, Headers.Values.X_CALL_SOURCE);
+                    // set remote-host
+                    if (!attr.getHost().contains(Symbols.COLON)) {
+                        h.set(Headers.ORIGIN_IP, attr.getHost());
+                        h.set(Headers.X_ORIGIN_IP, attr.getHost());
+                        h.set(Headers.X_FORWARDED_FOR, attr.getHost());
+                    }
+                });
 
         if (Objects.nonNull(attr.getContentType())) {
             result.accept(attr.getContentType());

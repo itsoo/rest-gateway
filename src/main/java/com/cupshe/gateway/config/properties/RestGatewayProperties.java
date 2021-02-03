@@ -24,6 +24,9 @@ public class RestGatewayProperties {
     /*** 触发熔断的失败速率 */
     private double rateFailure;
 
+    /*** 熔断单位时间后重置状态（秒） */
+    private int delayFailure;
+
     /*** 黑名单开关 */
     private boolean blackEnable;
 
@@ -73,6 +76,7 @@ public class RestGatewayProperties {
     public RestGatewayProperties() {
         this.rateLimiter = 2_000.0;
         this.rateFailure = 3.0;
+        this.delayFailure = 10;
         this.blackEnable = false;
         this.blackList = Lists.newLinkedList();
         this.maxConnections = 2_000;

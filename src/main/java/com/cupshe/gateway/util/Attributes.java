@@ -9,7 +9,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Attributes
@@ -29,7 +34,7 @@ public class Attributes {
 
     private final HttpHeaders headers;
 
-    private final MultiValueMap<String, HttpCookie> cookies;
+    private final MultiValueMap<String, String> cookies;
 
     private final MultiValueMap<String, String> queryParams;
 
@@ -37,7 +42,7 @@ public class Attributes {
 
     private Attributes(
             String id, String host, HttpMethod method, MediaType contentType, HttpHeaders headers,
-            MultiValueMap<String, HttpCookie> cookies, MultiValueMap<String, String> queryParams, Object body) {
+            MultiValueMap<String, String> cookies, MultiValueMap<String, String> queryParams, Object body) {
 
         this.id = id;
         this.host = host;
@@ -78,7 +83,19 @@ public class Attributes {
         public Attributes build() {
             Assert.notNull(method, "'httpMethod' cannot be null.");
             host = StringUtils.getOrEmpty(host);
-            return new Attributes(id, host, method, contentType, headers, cookies, queryParams, body);
+            return new Attributes(id, host, method, contentType, headers, getCookies(), queryParams, body);
+        }
+
+        private MultiValueMap<String, String> getCookies() {
+            MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
+            for (Map.Entry<String, List<HttpCookie>> me : cookies.entrySet()) {
+                result.addAll(me.getKey(), me.getValue()
+                        .stream()
+                        .map(HttpCookie::getValue)
+                        .collect(Collectors.toList()));
+            }
+
+            return result;
         }
     }
 }

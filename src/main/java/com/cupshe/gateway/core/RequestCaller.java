@@ -7,11 +7,10 @@ import lombok.Data;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -66,8 +65,8 @@ public class RequestCaller {
          */
         default List<HostStatus> init(List<String> services) {
             return services
-                    .parallelStream()
-                    .map(t -> new HostStatus(t, Boolean.TRUE))
+                    .stream()
+                    .map(t -> new HostStatus(t, true))
                     .collect(Collectors.toList());
         }
 
@@ -77,10 +76,10 @@ public class RequestCaller {
          * @param services List of HostStatus
          * @return List of HostStatus
          */
-        default List<HostStatus> list(List<HostStatus> services) {
+        default List<HostStatus> aliveList(List<HostStatus> services) {
             return services
-                    .parallelStream()
-                    .filter(t -> Boolean.TRUE.equals(t.getStatus()))
+                    .stream()
+                    .filter(HostStatus::isStatus)
                     .collect(Collectors.toList());
         }
 
@@ -89,6 +88,7 @@ public class RequestCaller {
          *
          * @return next remote host
          */
+        @NonNull
         HostStatus next();
     }
 
@@ -107,16 +107,16 @@ public class RequestCaller {
 
         @Override
         public HostStatus next() {
-            List<HostStatus> list = list(services);
-            if (CollectionUtils.isEmpty(list)) {
-                return null;
+            List<HostStatus> list = aliveList(services);
+            if (list.isEmpty()) {
+                return HostStatus.NON_SUPPORT;
             }
 
-            int curr, next;
+            int curr, next, size = list.size() - 1;
 
             do {
                 curr = i.get();
-                next = curr >= list.size() - 1 ? 0 : curr + 1;
+                next = curr >= size ? 0 : curr + 1;
             } while (!i.compareAndSet(curr, next));
 
             return list.get(curr);
@@ -128,8 +128,6 @@ public class RequestCaller {
      */
     private static class RandomLoadBalancer implements LoadBalancer {
 
-        private final Random i = new Random();
-
         private final List<HostStatus> services;
 
         private RandomLoadBalancer(List<String> services) {
@@ -138,12 +136,12 @@ public class RequestCaller {
 
         @Override
         public HostStatus next() {
-            List<HostStatus> list = list(services);
-            if (CollectionUtils.isEmpty(list)) {
-                return null;
+            List<HostStatus> list = aliveList(services);
+            if (list.isEmpty()) {
+                return HostStatus.NON_SUPPORT;
             }
 
-            int curr = this.i.nextInt(list.size());
+            int curr = ThreadLocalRandom.current().nextInt(0, list.size());
             return list.get(curr);
         }
     }

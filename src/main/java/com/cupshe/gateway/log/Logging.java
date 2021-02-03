@@ -10,7 +10,6 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -23,13 +22,9 @@ import java.util.StringJoiner;
 @Slf4j
 public class Logging {
 
-    public static void writeRequestPayload(ServerWebExchange exchange, String url) {
-        Attributes attr = exchange.getAttribute(Filters.ATTRIBUTES_CACHE_KEY);
-        ServerHttpRequest req = exchange.getRequest();
-        HttpHeaders headers = getHeaders(attr, req);
-        String queryParams = getQueryParams(attr, req);
-        log.info(StringUtils.getFormatString("Rest-gateway forwarding <{} {}{},{} #body>",
-                req.getMethodValue(), url, queryParams, headers));
+    public static void writeRequestPayload(ServerHttpRequest req, String url) {
+        log.info(StringUtils.getFormatString("Rest-gateway forwarding <{} {},{}>",
+                req.getMethodValue(), url, req.getHeaders()));
     }
 
     public static void writeRequestRateLimiter(ServerHttpRequest req) {

@@ -3,6 +3,8 @@ rest-gateway:
   rate-limiter: 2000.0
   # 触发熔断的失败速率
   rate-failure: 3.0
+  # 熔断单位时间后重置状态（秒）
+  dela-failure: 10
   # 黑名单开关
   black-enable: true
   # 黑名单列表（支持 IP 段配置）
@@ -33,7 +35,7 @@ rest-gateway:
     - name: comment            # router name
       lb-type: RR              # 负载均衡策略（round-robin=RR, random=R）
       prefix: /api/v1/comment  # 匹配请求路径的前缀
-      services:                # service 列表
+      services: # service 列表
         - 127.0.0.1:8080
         - 127.0.0.1:8081
         - 127.0.0.1:8082

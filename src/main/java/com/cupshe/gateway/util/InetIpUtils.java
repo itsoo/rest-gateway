@@ -1,8 +1,8 @@
 package com.cupshe.gateway.util;
 
 import com.cupshe.ak.text.StringUtils;
+import com.google.common.collect.Lists;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +19,7 @@ public class InetIpUtils {
 
     public static List<String> filters(List<String> ipTables) {
         return ipTables
-                .parallelStream()
+                .stream()
                 .filter(InetIpUtils::isValid)
                 .collect(Collectors.toList());
     }
@@ -30,7 +30,7 @@ public class InetIpUtils {
     }
 
     public static List<String> rangeIps(String ip) {
-        List<String> result = new LinkedList<>();
+        List<String> result = Lists.newLinkedList();
         String[] s = StringUtils.split(ip, "/");
         if (s.length == FOR_SP_LEN) {
             int i = s[0].lastIndexOf('.');

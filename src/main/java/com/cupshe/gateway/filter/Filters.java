@@ -1,6 +1,7 @@
 package com.cupshe.gateway.filter;
 
 import com.cupshe.ak.common.BaseConstant;
+import com.cupshe.ak.text.StringUtils;
 import com.cupshe.gateway.constant.Headers;
 import org.slf4j.MDC;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -10,6 +11,8 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
+
+import java.util.stream.Collectors;
 
 /**
  * Filters
@@ -31,7 +34,10 @@ public class Filters {
         HttpHeaders result = new HttpHeaders();
         headers.forEach((k, v) -> {
             if (!Headers.Ignores.contains(k)) {
-                result.addAll(k, v);
+                result.addAll(k, v
+                        .stream()
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.toList()));
             }
         });
 

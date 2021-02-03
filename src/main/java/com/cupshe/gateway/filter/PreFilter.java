@@ -12,6 +12,8 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.Set;
+
 /**
  * PreFilter
  * <p>Cached request data of headers
@@ -23,7 +25,15 @@ import reactor.core.publisher.Mono;
 public class PreFilter implements WebFilter {
 
     public PreFilter(RestGatewayProperties properties) {
-        Headers.Ignores.HEADERS.addAll(properties.getFilterHeaders());
+        initial(properties.getFilterHeaders());
+    }
+
+    private void initial(Set<String> filterHeaders) {
+        filterHeaders.add(Headers.ORIGIN_IP);
+        filterHeaders.add(Headers.X_ORIGIN_IP);
+        filterHeaders.add(Headers.X_FORWARDED_FOR);
+        filterHeaders.add(Headers.X_CALL_SOURCE);
+        Headers.Ignores.HEADERS.addAll(filterHeaders);
     }
 
     @Override

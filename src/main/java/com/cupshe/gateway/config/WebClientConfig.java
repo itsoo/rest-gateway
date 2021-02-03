@@ -30,9 +30,9 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties(RestGatewayProperties.class)
 public class WebClientConfig {
 
-    private static final String PROVIDER_THREAD_NAME = "work-pool-cp";
+    private static final String PROVIDER_THREAD_NAME = "webclient-cp";
 
-    private static final String EVENT_LOOP_THREAD_NAME = "work-pool-el";
+    private static final String EVENT_LOOP_THREAD_NAME = "webclient-el";
 
     private final RestGatewayProperties properties;
 

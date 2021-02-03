@@ -7,8 +7,14 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Breaker
@@ -18,31 +24,81 @@ import java.util.TimerTask;
 @Component
 public class Breaker {
 
-    private static final long TIMER_TRIGGER = 15 * 1000L;
+    private final int defaultDelay;
 
     private final RateLimiter limiter;
 
+    private final TimerTask<HostStatus> timerTask;
+
     public Breaker(RestGatewayProperties properties) {
+        this.defaultDelay = properties.getDelayFailure();
         this.limiter = RateLimiter.create(properties.getRateFailure());
+        timerTask = new TimerTask<>(t -> t.setStatus(true));
     }
 
     public void execute(ServerWebExchange exchange, HostStatus hostStatus) {
-        System.out.println(hostStatus);
-
         if (!limiter.tryAcquire() && hostStatus != null) {
             String traceId = exchange.getAttribute(BaseConstant.TRACE_ID_KEY);
             Logging.writeRequestTimeoutBreaker(exchange.getRequest(), hostStatus, traceId);
-            resetHostStatusAfterTimer(hostStatus);
+            timerTask.push(hostStatus, defaultDelay);
         }
     }
 
-    private void resetHostStatusAfterTimer(HostStatus hostStatus) {
-        hostStatus.setStatus(Boolean.FALSE);
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                hostStatus.setStatus(Boolean.TRUE);
+    /**
+     * TimerTask
+     */
+    public static class TimerTask<T> {
+
+        private final AtomicInteger i;
+
+        private final Queue<T>[] queues;
+
+        private final ScheduledExecutorService executor;
+
+        private final Consumer<T> consumer;
+
+        @SuppressWarnings("all")
+        public TimerTask(Consumer<T> consumer) {
+            i = new AtomicInteger(-1);
+            queues = new Queue[60];
+            executor = new ScheduledThreadPoolExecutor(1);
+            this.consumer = consumer;
+            // init queues
+            for (int j = 0; j < queues.length; j++) {
+                queues[j] = new ConcurrentLinkedQueue<>();
             }
-        }, TIMER_TRIGGER);
+
+            startLearnServersListener();
+        }
+
+        private void startLearnServersListener() {
+            executor.scheduleWithFixedDelay(() -> {
+                increment();
+                // consuming
+                Iterator<T> it = pull();
+                while (it.hasNext()) {
+                    consumer.accept(it.next());
+                }
+            }, 1L, 1L, TimeUnit.SECONDS);
+        }
+
+        public void push(T hostStatus, int delay) {
+            int curr = (i.get() + delay) % queues.length;
+            queues[curr].add(hostStatus);
+        }
+
+        public Iterator<T> pull() {
+            int curr = i.get();
+            return queues[curr].iterator();
+        }
+
+        private void increment() {
+            int curr, next;
+
+            do {
+                curr = i.get();
+                next = curr + 1 % queues.length;
+            } while (!i.compareAndSet(curr, next));
+        }
     }
 }

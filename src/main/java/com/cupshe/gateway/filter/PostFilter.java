@@ -22,7 +22,6 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Objects;
 
 /**
  * PostFilter
@@ -46,11 +45,7 @@ public class PostFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String reqPath = Filters.getPath(exchange);
-        HostStatus remoteHost = caller.next(reqPath);
-        if (Objects.isNull(remoteHost) || !remoteHost.getStatus()) {
-            throw new UnavailableException();
-        }
-
+        HostStatus remoteHost = getRemoteHost(exchange, reqPath);
         exchange.getAttributes().put(Filters.REMOTE_HOST_CACHE_KEY, remoteHost);
         String url = Symbols.HTTP_PROTOCOL_PREFIX + remoteHost.getHost() + reqPath;
 
@@ -63,7 +58,7 @@ public class PostFilter implements WebFilter {
 
     @SneakyThrows
     private Mono<Void> doFilter(ServerWebExchange exchange, String url) {
-        Logging.writeRequestPayload(exchange, url);
+        Logging.writeRequestPayload(exchange.getRequest(), url);
         final Attributes attr = exchange.getAttribute(Filters.ATTRIBUTES_CACHE_KEY);
         Assert.notNull(attr, "'attributes' cannot be null.");
         return RequestProcessor.getRemoteRequestOf(webClient, attr, new URI(url))
@@ -73,12 +68,22 @@ public class PostFilter implements WebFilter {
                 .flatMap(r -> convertAndResponse(r, exchange));
     }
 
+    private HostStatus getRemoteHost(ServerWebExchange exchange, String reqPath) {
+        HostStatus result = caller.next(reqPath);
+        if (HostStatus.isNotSupport(result)) {
+            Logging.writeRequestUnsupported(exchange.getRequest());
+            throw new UnavailableException();
+        }
+
+        return result;
+    }
+
     private Mono<? extends Void> convertAndResponse(ClientResponse remoteResp, ServerWebExchange exchange) {
         ServerHttpResponse clientResp = exchange.getResponse();
         ResponseProcessor.resetServerHttpResponse(clientResp, remoteResp);
         return clientResp
                 .writeWith(remoteResp.body(BodyExtractors.toDataBuffers()))
-                .doOnError(ResponseProcessor::rethrow)
+                .doOnError(t -> ResponseProcessor.cleanup(remoteResp))
                 .doOnCancel(() -> ResponseProcessor.cleanup(remoteResp));
     }
 }
