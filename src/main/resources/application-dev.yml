@@ -4,7 +4,7 @@ rest-gateway:
   # 触发熔断的失败速率
   rate-failure: 3.0
   # 熔断单位时间后重置状态（秒）
-  dela-failure: 10
+  delay-failure: 10
   # 黑名单开关
   black-enable: true
   # 黑名单列表（支持 IP 段配置）
