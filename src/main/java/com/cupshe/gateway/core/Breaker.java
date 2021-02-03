@@ -40,28 +40,25 @@ public class Breaker {
         if (!limiter.tryAcquire() && hostStatus != null) {
             String traceId = exchange.getAttribute(BaseConstant.TRACE_ID_KEY);
             Logging.writeRequestTimeoutBreaker(exchange.getRequest(), hostStatus, traceId);
-            timerTask.push(hostStatus, defaultDelay);
+            timerTask.push(hostStatus.setStatus(false), defaultDelay);
         }
     }
 
     /**
      * TimerTask
      */
+    @SuppressWarnings("all")
     public static class TimerTask<T> {
 
-        private final AtomicInteger i;
+        private final AtomicInteger i = new AtomicInteger(-1);
 
-        private final Queue<T>[] queues;
+        private final Queue<T>[] queues = new Queue[60];
 
-        private final ScheduledExecutorService executor;
+        private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
 
         private final Consumer<T> consumer;
 
-        @SuppressWarnings("all")
         public TimerTask(Consumer<T> consumer) {
-            i = new AtomicInteger(-1);
-            queues = new Queue[60];
-            executor = new ScheduledThreadPoolExecutor(1);
             this.consumer = consumer;
             initial();
         }

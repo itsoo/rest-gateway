@@ -7,9 +7,6 @@ import com.cupshe.gateway.exception.GatewayException;
 import com.cupshe.gateway.exception.TimeoutException;
 import com.cupshe.gateway.filter.Filters;
 import com.cupshe.gateway.log.Logging;
-import io.netty.channel.ConnectTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutException;
-import io.netty.handler.timeout.WriteTimeoutException;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -19,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,26 +30,17 @@ import java.util.stream.Collectors;
 @Order(Ordered.HIGHEST)
 public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
-    private final Map<Class<?>, GatewayException> errorMap;
+    private final Map<Class<? extends GatewayException>, GatewayException> errorMap;
 
     private final Breaker breaker;
 
     public GlobalExceptionHandler(List<? extends GatewayException> errorList, Breaker breaker) {
-        Map<Class<?>, GatewayException> map = errorList
+        Map<Class<? extends GatewayException>, GatewayException> map = errorList
                 .parallelStream()
-                // we need throw error for repeated key
+                // we need throw error for duplicate key
                 .collect(Collectors.toMap(GatewayException::getClass, t -> t));
-        initial(map);
         this.errorMap = Collections.unmodifiableMap(map);
         this.breaker = breaker;
-    }
-
-    private void initial(Map<Class<?>, GatewayException> map) {
-        GatewayException e = map.get(TimeoutException.class);
-        map.put(ConnectException.class, e);
-        map.put(ConnectTimeoutException.class, e);
-        map.put(ReadTimeoutException.class, e);
-        map.put(WriteTimeoutException.class, e);
     }
 
     @Override

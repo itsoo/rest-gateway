@@ -15,7 +15,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.Connection;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.resources.LoopResources;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +31,6 @@ public class WebClientConfig {
 
     private static final String PROVIDER_THREAD_NAME = "webclient-cp";
 
-    private static final String EVENT_LOOP_THREAD_NAME = "webclient-el";
-
     private final RestGatewayProperties properties;
 
     public WebClientConfig(RestGatewayProperties properties) {
@@ -45,7 +42,6 @@ public class WebClientConfig {
         HttpClient httpClient = HttpClient.create(getConnectionProvider())
                 .compress(properties.isCompress())
                 .tcpConfiguration(tcpClient -> tcpClient
-                        .runOn(getLoopResources(), false)
                         .doOnConnected(this::setConnectionTimeout)
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout())
                         .option(ChannelOption.TCP_NODELAY, properties.isTcpNodelay())
@@ -63,15 +59,6 @@ public class WebClientConfig {
                 properties.getMaxConnections(),
                 properties.getAcquireTimeout(),
                 Duration.ofMillis(properties.getMaxIdleTime()));
-    }
-
-    private LoopResources getLoopResources() {
-        LoopResources result = LoopResources.create(
-                EVENT_LOOP_THREAD_NAME,
-                Runtime.getRuntime().availableProcessors(),
-                true);
-        result.onServer(false);
-        return result;
     }
 
     private void setConnectionTimeout(Connection connection) {

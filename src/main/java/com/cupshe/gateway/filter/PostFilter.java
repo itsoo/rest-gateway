@@ -1,6 +1,5 @@
 package com.cupshe.gateway.filter;
 
-import com.cupshe.ak.exception.ExceptionUtils;
 import com.cupshe.gateway.constant.Symbols;
 import com.cupshe.gateway.core.HostStatus;
 import com.cupshe.gateway.core.RequestCaller;
@@ -46,9 +45,7 @@ public class PostFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
-        // TODO 重点研究 WebClient 的问题：
-        //  1. 网络请求未释放（猜测）导致线程过多 OOM ！！！！
-        //  2. 还有并发下的负载均衡的问题！！！！
+        // TODO 并发下的负载均衡的问题！！！！
 
         String reqPath = Filters.getPath(exchange);
         HostStatus remoteHost = getRemoteHost(exchange, reqPath);
@@ -70,7 +67,7 @@ public class PostFilter implements WebFilter {
         return RequestProcessor.getRemoteRequestOf(webClient, attr, new URI(url))
                 .exchange()
                 .name(attr.getId())
-                .doOnError(ExceptionUtils::rethrow)
+                .doOnError(ResponseProcessor::rethrow)
                 .flatMap(r -> convertAndResponse(r, exchange));
     }
 
