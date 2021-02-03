@@ -44,6 +44,11 @@ public class PostFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+
+        // TODO 重点研究 WebClient 的问题：
+        //  1. 网络请求未释放（猜测）导致线程过多 OOM ！！！！
+        //  2. 还有并发下的负载均衡的问题！！！！
+
         String reqPath = Filters.getPath(exchange);
         HostStatus remoteHost = getRemoteHost(exchange, reqPath);
         exchange.getAttributes().put(Filters.REMOTE_HOST_CACHE_KEY, remoteHost);
