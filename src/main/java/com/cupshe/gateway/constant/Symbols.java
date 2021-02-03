@@ -17,38 +17,6 @@ public interface Symbols {
 
     String FORWARD_SLASH = "/";
 
-    char BACK_SLASH = '\\';
-
-    char DOT = '.';
-
-    char SEMICOLON = ';';
-
-    char QUESTION = '?';
-
-    char DOUBLE_QUOTE = '"';
-
-    char SINGLE_QUOTE = '\'';
-
-    char ASTERISK = '*';
-
-    char DASH = '-';
-
-    char UNDERLINE = '_';
-
-    char EQUAL = '=';
-
-    char AT = '@';
-
-    char HASH = '#';
-
-    char LEFT_SQUARE_BRACKET = '[';
-
-    char RIGHT_SQUARE_BRACKET = ']';
-
-    char LEFT_BRACE = '{';
-
-    char RIGHT_BRACE = '}';
-
     char LF = '\n';
 
     char TAB = '\t';
