@@ -63,6 +63,10 @@ public class Breaker {
             queues = new Queue[60];
             executor = new ScheduledThreadPoolExecutor(1);
             this.consumer = consumer;
+            initial();
+        }
+
+        private void initial() {
             // init queues
             for (int j = 0; j < queues.length; j++) {
                 queues[j] = new ConcurrentLinkedQueue<>();
