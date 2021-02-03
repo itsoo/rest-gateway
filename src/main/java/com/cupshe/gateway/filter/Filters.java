@@ -35,7 +35,7 @@ public class Filters {
         headers.forEach((k, v) -> {
             if (!Headers.Ignores.contains(k)) {
                 result.addAll(k, v
-                        .stream()
+                        .parallelStream()
                         .filter(StringUtils::isNotBlank)
                         .collect(Collectors.toList()));
             }

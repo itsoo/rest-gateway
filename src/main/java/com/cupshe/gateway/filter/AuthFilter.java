@@ -41,9 +41,8 @@ public class AuthFilter implements WebFilter {
     }
 
     private void initial(RestGatewayProperties properties) {
-        Map<String, String> map = properties
-                .getRouters()
-                .stream()
+        Map<String, String> map = properties.getRouters()
+                .parallelStream()
                 .collect(Collectors.toMap(Router::getName, Router::getPrefix));
         properties.getNonAuth().forEach(k -> noAuthPrefix.add(map.get(k)));
     }

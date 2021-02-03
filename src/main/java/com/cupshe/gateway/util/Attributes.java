@@ -90,7 +90,7 @@ public class Attributes {
             MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
             for (Map.Entry<String, List<HttpCookie>> me : cookies.entrySet()) {
                 result.addAll(me.getKey(), me.getValue()
-                        .stream()
+                        .parallelStream()
                         .map(HttpCookie::getValue)
                         .collect(Collectors.toList()));
             }

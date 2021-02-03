@@ -36,7 +36,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
     public GlobalExceptionHandler(List<? extends GatewayException> errorList, Breaker breaker) {
         Map<Class<? extends GatewayException>, GatewayException> map = errorList
-                .stream()
+                .parallelStream()
                 // we need throw error for duplicate key
                 .collect(Collectors.toMap(GatewayException::getClass, t -> t));
         this.errorMap = Collections.unmodifiableMap(map);

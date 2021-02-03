@@ -65,7 +65,7 @@ public class RequestCaller {
          */
         default List<HostStatus> init(List<String> services) {
             return services
-                    .stream()
+                    .parallelStream()
                     .map(t -> new HostStatus(t, true))
                     .collect(Collectors.toList());
         }
@@ -78,7 +78,7 @@ public class RequestCaller {
          */
         default List<HostStatus> aliveList(List<HostStatus> services) {
             return services
-                    .stream()
+                    .parallelStream()
                     .filter(HostStatus::isStatus)
                     .collect(Collectors.toList());
         }

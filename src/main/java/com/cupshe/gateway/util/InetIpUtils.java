@@ -19,7 +19,7 @@ public class InetIpUtils {
 
     public static List<String> filters(List<String> ipTables) {
         return ipTables
-                .stream()
+                .parallelStream()
                 .filter(InetIpUtils::isValid)
                 .collect(Collectors.toList());
     }
