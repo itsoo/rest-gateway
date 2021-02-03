@@ -1,18 +1,9 @@
 package com.cupshe.gateway.util;
 
-import com.cupshe.ak.exception.ExceptionUtils;
 import com.cupshe.gateway.constant.Headers;
-import com.cupshe.gateway.exception.TimeoutException;
-import com.google.common.collect.ImmutableSet;
-import io.netty.channel.ConnectTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutException;
-import io.netty.handler.timeout.WriteTimeoutException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.client.ClientResponse;
-
-import java.net.ConnectException;
-import java.util.Set;
 
 /**
  * ResponseProcessor
@@ -20,12 +11,6 @@ import java.util.Set;
  * @author zxy
  */
 public class ResponseProcessor {
-
-    private static final Set<Class<? extends Exception>> ERROR_CLASSES = ImmutableSet.of(
-            ConnectException.class,
-            ConnectTimeoutException.class,
-            ReadTimeoutException.class,
-            WriteTimeoutException.class);
 
     public static void resetServerHttpResponse(ServerHttpResponse clientResp, ClientResponse remoteResp) {
         clientResp.setStatusCode(remoteResp.statusCode());
@@ -43,16 +28,6 @@ public class ResponseProcessor {
                 clientRespHeaders.put(k, v);
             }
         });
-    }
-
-    public static void rethrow(Throwable t) {
-        for (Class<? extends Exception> errorClass : ERROR_CLASSES) {
-            if (errorClass.isAssignableFrom(t.getClass())) {
-                ExceptionUtils.rethrow(new TimeoutException());
-            }
-        }
-
-        ExceptionUtils.rethrow(t);
     }
 
     public static void cleanup(ClientResponse clientResp) {

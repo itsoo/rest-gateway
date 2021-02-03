@@ -1,5 +1,6 @@
 package com.cupshe.gateway.filter;
 
+import com.cupshe.ak.exception.ExceptionUtils;
 import com.cupshe.gateway.constant.Symbols;
 import com.cupshe.gateway.core.HostStatus;
 import com.cupshe.gateway.core.RequestCaller;
@@ -69,7 +70,7 @@ public class PostFilter implements WebFilter {
         return RequestProcessor.getRemoteRequestOf(webClient, attr, new URI(url))
                 .exchange()
                 .name(attr.getId())
-                .doOnError(ResponseProcessor::rethrow)
+                .doOnError(ExceptionUtils::rethrow)
                 .flatMap(r -> convertAndResponse(r, exchange));
     }
 

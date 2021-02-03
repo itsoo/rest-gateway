@@ -4,15 +4,9 @@ import com.cupshe.ak.common.BaseConstant;
 import com.cupshe.ak.text.StringUtils;
 import com.cupshe.gateway.core.HostStatus;
 import com.cupshe.gateway.filter.Filters;
-import com.cupshe.gateway.util.Attributes;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.MultiValueMap;
-
-import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * Logging
@@ -51,18 +45,5 @@ public class Logging {
     public static void writeResponseFailure(Throwable t, String traceId) {
         MDC.put(BaseConstant.MDC_SESSION_KEY, traceId);
         log.error("Gateway error: {}", t.getMessage(), t);
-    }
-
-    private static HttpHeaders getHeaders(Attributes attr, ServerHttpRequest clientReq) {
-        return Objects.nonNull(attr) ? attr.getHeaders() : clientReq.getHeaders();
-    }
-
-    private static String getQueryParams(Attributes attr, ServerHttpRequest clientReq) {
-        MultiValueMap<String, String> queryParams = Objects.nonNull(attr)
-                ? attr.getQueryParams()
-                : clientReq.getQueryParams();
-        StringJoiner joiner = new StringJoiner("&");
-        queryParams.forEach((k, v) -> joiner.add(k + '=' + v.toString()));
-        return joiner.toString();
     }
 }

@@ -29,10 +29,6 @@ public class PreFilter implements WebFilter {
     }
 
     private void initial(Set<String> filterHeaders) {
-        filterHeaders.add(Headers.ORIGIN_IP);
-        filterHeaders.add(Headers.X_ORIGIN_IP);
-        filterHeaders.add(Headers.X_FORWARDED_FOR);
-        filterHeaders.add(Headers.X_CALL_SOURCE);
         Headers.Ignores.HEADERS.addAll(filterHeaders);
     }
 
