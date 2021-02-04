@@ -7,7 +7,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Iterator;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,12 +32,16 @@ public class Breaker {
 
     public Breaker(RestGatewayProperties properties) {
         this.defaultDelay = properties.getDelayFailure();
-        this.limiter = RateLimiter.create(properties.getRateFailure());
-        timerTask = new TimerTask<>(t -> t.setStatus(true));
+        this.limiter = RateLimiter.create(properties.getRateFailure(), 5, TimeUnit.SECONDS);
+        this.timerTask = new TimerTask<>(t -> t.setStatus(true));
     }
 
     public void execute(ServerWebExchange exchange, HostStatus hostStatus) {
-        if (!limiter.tryAcquire() && hostStatus != null) {
+        if (HostStatus.isNotSupport(hostStatus)) {
+            return;
+        }
+
+        if (!limiter.tryAcquire()) {
             String traceId = exchange.getAttribute(BaseConstant.TRACE_ID_KEY);
             Logging.writeRequestTimeoutBreaker(exchange.getRequest(), hostStatus, traceId);
             timerTask.push(hostStatus.setStatus(false), defaultDelay);
@@ -75,10 +79,9 @@ public class Breaker {
         private void startLearnServersListener() {
             executor.scheduleWithFixedDelay(() -> {
                 increment();
-                // consuming
-                Iterator<T> it = pull();
-                while (it.hasNext()) {
-                    consumer.accept(it.next());
+                T t;
+                while (Objects.nonNull((t = poll()))) {
+                    consumer.accept(t);
                 }
             }, 1L, 1L, TimeUnit.SECONDS);
         }
@@ -88,9 +91,9 @@ public class Breaker {
             queues[curr].add(hostStatus);
         }
 
-        public Iterator<T> pull() {
+        public T poll() {
             int curr = i.get();
-            return queues[curr].iterator();
+            return queues[curr].poll();
         }
 
         private void increment() {

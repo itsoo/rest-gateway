@@ -71,19 +71,6 @@ public class RequestCaller {
         }
 
         /**
-         * list of support services
-         *
-         * @param services List of HostStatus
-         * @return List of HostStatus
-         */
-        protected List<HostStatus> aliveList(List<HostStatus> services) {
-            return services
-                    .parallelStream()
-                    .filter(HostStatus::isStatus)
-                    .collect(Collectors.toList());
-        }
-
-        /**
          * Get next service of service-list
          *
          * @return next remote host
@@ -107,19 +94,24 @@ public class RequestCaller {
 
         @Override
         public HostStatus next() {
-            List<HostStatus> list = aliveList(services);
-            if (list.isEmpty()) {
+            if (services.isEmpty()) {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int curr, next, size = list.size();
+            int hist, curr, next, size = services.size();
 
-            do {
-                curr = i.get();
-                next = curr < size ? (curr + 1) : 0;
-            } while (!i.compareAndSet(curr, next));
+            while (true) {
+                do {
+                    curr = hist = i.get();
+                    curr = curr >= size ? 0 : curr;
+                    next = curr + 1;
+                } while (!i.compareAndSet(hist, next));
 
-            return list.get(curr);
+                HostStatus result = services.get(curr);
+                if (result.isStatus()) {
+                    return result;
+                }
+            }
         }
     }
 
@@ -136,13 +128,19 @@ public class RequestCaller {
 
         @Override
         public HostStatus next() {
-            List<HostStatus> list = aliveList(services);
-            if (list.isEmpty()) {
+            if (services.isEmpty()) {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int curr = ThreadLocalRandom.current().nextInt(0, list.size());
-            return list.get(curr);
+            int curr, size = services.size();
+
+            while (true) {
+                curr = ThreadLocalRandom.current().nextInt(0, size);
+                HostStatus result = services.get(curr);
+                if (result.isStatus()) {
+                    return result;
+                }
+            }
         }
     }
 }
