@@ -114,17 +114,12 @@ public class RequestCaller {
 
             int curr, next, size = list.size();
 
-            while (true) {
-                do {
-                    next = curr = i.get();
-                    next = ++next >= size ? 0 : next;
-                } while (!i.compareAndSet(curr, next));
+            do {
+                next = curr = i.get();
+                next = ++next >= size ? 0 : next;
+            } while (!i.compareAndSet(curr, next));
 
-                HostStatus result = list.get(next);
-                if (result.isStatus()) {
-                    return result;
-                }
-            }
+            return list.get(next);
         }
     }
 
@@ -146,15 +141,9 @@ public class RequestCaller {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int next, size = list.size();
+            int next = ThreadLocalRandom.current().nextInt(0, list.size());
 
-            while (true) {
-                next = ThreadLocalRandom.current().nextInt(0, size);
-                HostStatus result = list.get(next);
-                if (result.isStatus()) {
-                    return result;
-                }
-            }
+            return list.get(next);
         }
     }
 }
