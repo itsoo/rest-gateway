@@ -70,9 +70,6 @@ public class PostFilter implements WebFilter {
 
     private HostStatus getRemoteHost(ServerWebExchange exchange, String reqPath) {
         HostStatus result = caller.next(reqPath);
-
-        System.out.println(result);
-
         if (HostStatus.isNotSupport(result)) {
             Logging.writeRequestUnsupported(exchange.getRequest());
             throw new UnavailableException();

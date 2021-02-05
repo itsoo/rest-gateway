@@ -13,6 +13,6 @@ public class InitLearnServers {
 
     @Scheduled(fixedDelay = 1_000L)
     public void schedule() {
-
+        // todo
     }
 }

@@ -63,7 +63,7 @@ public class RequestCaller {
          * @param services List of String
          * @return List of HostStatus
          */
-        protected List<HostStatus> init(List<String> services) {
+        protected List<HostStatus> initial(List<String> services) {
             return services
                     .parallelStream()
                     .map(t -> new HostStatus(t, true))
@@ -84,12 +84,12 @@ public class RequestCaller {
      */
     private static class RoundRobinLoadBalancer extends AbstractLoadBalancer {
 
-        private final AtomicInteger i = new AtomicInteger(0);
+        private final AtomicInteger i = new AtomicInteger(-1);
 
         private final List<HostStatus> services;
 
         private RoundRobinLoadBalancer(List<String> services) {
-            this.services = init(services);
+            this.services = initial(services);
         }
 
         @Override
@@ -98,16 +98,15 @@ public class RequestCaller {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int hist, curr, next, size = services.size();
+            int curr, next, size = services.size();
 
             while (true) {
                 do {
-                    curr = hist = i.get();
-                    curr = curr >= size ? 0 : curr;
-                    next = curr + 1;
-                } while (!i.compareAndSet(hist, next));
+                    next = curr = i.get();
+                    next = ++next >= size ? 0 : next;
+                } while (!i.compareAndSet(curr, next));
 
-                HostStatus result = services.get(curr);
+                HostStatus result = services.get(next);
                 if (result.isStatus()) {
                     return result;
                 }
@@ -123,7 +122,7 @@ public class RequestCaller {
         private final List<HostStatus> services;
 
         private RandomLoadBalancer(List<String> services) {
-            this.services = init(services);
+            this.services = initial(services);
         }
 
         @Override
@@ -132,11 +131,11 @@ public class RequestCaller {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int curr, size = services.size();
+            int next, size = services.size();
 
             while (true) {
-                curr = ThreadLocalRandom.current().nextInt(0, size);
-                HostStatus result = services.get(curr);
+                next = ThreadLocalRandom.current().nextInt(0, size);
+                HostStatus result = services.get(next);
                 if (result.isStatus()) {
                     return result;
                 }

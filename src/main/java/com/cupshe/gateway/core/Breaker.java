@@ -50,6 +50,7 @@ public class Breaker {
 
     /**
      * TimerTask
+     * 抽象的时间片，可用于延迟执行任务，时间单位（秒）
      */
     @SuppressWarnings("all")
     public static class TimerTask<T> {
@@ -64,7 +65,7 @@ public class Breaker {
 
         public TimerTask(Consumer<T> consumer) {
             this.consumer = consumer;
-            initial();
+            this.initial();
         }
 
         private void initial() {
