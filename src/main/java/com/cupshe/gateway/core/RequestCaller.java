@@ -71,6 +71,19 @@ public class RequestCaller {
         }
 
         /**
+         * list of support services
+         *
+         * @param services List of HostStatus
+         * @return List of HostStatus
+         */
+        protected List<HostStatus> aliveList(List<HostStatus> services) {
+            return services
+                    .parallelStream()
+                    .filter(HostStatus::isStatus)
+                    .collect(Collectors.toList());
+        }
+
+        /**
          * Get next service of service-list
          *
          * @return next remote host
@@ -94,11 +107,12 @@ public class RequestCaller {
 
         @Override
         public HostStatus next() {
-            if (services.isEmpty()) {
+            final List<HostStatus> list = aliveList(services);
+            if (list.isEmpty()) {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int curr, next, size = services.size();
+            int curr, next, size = list.size();
 
             while (true) {
                 do {
@@ -106,7 +120,7 @@ public class RequestCaller {
                     next = ++next >= size ? 0 : next;
                 } while (!i.compareAndSet(curr, next));
 
-                HostStatus result = services.get(next);
+                HostStatus result = list.get(next);
                 if (result.isStatus()) {
                     return result;
                 }
@@ -127,15 +141,16 @@ public class RequestCaller {
 
         @Override
         public HostStatus next() {
-            if (services.isEmpty()) {
+            final List<HostStatus> list = aliveList(services);
+            if (list.isEmpty()) {
                 return HostStatus.NON_SUPPORT;
             }
 
-            int next, size = services.size();
+            int next, size = list.size();
 
             while (true) {
                 next = ThreadLocalRandom.current().nextInt(0, size);
-                HostStatus result = services.get(next);
+                HostStatus result = list.get(next);
                 if (result.isStatus()) {
                     return result;
                 }
