@@ -1,6 +1,6 @@
 rest-gateway:
   # 请求流速限制
-  rate-limiter: 2000.0
+  rate-limiter: 20000.0
   # 触发熔断的失败速率
   rate-failure: 4.0
   # 熔断单位时间后重置状态（秒）

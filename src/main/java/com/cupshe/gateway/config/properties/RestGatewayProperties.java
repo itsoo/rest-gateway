@@ -74,9 +74,9 @@ public class RestGatewayProperties {
     private List<Router> routers;
 
     public RestGatewayProperties() {
-        this.rateLimiter = 2_000.0;
+        this.rateLimiter = 20_000.0;
         this.rateFailure = 3.0;
-        this.delayFailure = 10;
+        this.delayFailure = 5;
         this.blackEnable = false;
         this.blackList = Lists.newLinkedList();
         this.maxConnections = 2_000;
