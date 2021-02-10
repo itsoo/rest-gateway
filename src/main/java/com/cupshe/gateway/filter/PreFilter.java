@@ -9,7 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * PreFilter
- * <p>Cached request data of headers
+ * <p>Cached headers data of request-context
  *
  * @author zxy
  */
@@ -18,12 +18,9 @@ public class PreFilter extends AbstractFilter {
 
     private final AbstractFilter next;
 
-    private final Filters filters;
-
-    public PreFilter(RestGatewayProperties properties, AuthFilter authFilter, Filters filters) {
+    public PreFilter(RestGatewayProperties properties, AuthFilter authFilter) {
         Headers.Ignores.addAll(properties.getFilterHeaders());
         this.next = authFilter;
-        this.filters = filters;
     }
 
     @Override
@@ -45,7 +42,7 @@ public class PreFilter extends AbstractFilter {
                 .setContentType(clientReq.getHeaders().getContentType())
                 .setHost(FilterContext.getRemoteHost())
                 .setQueryParams(clientReq.getQueryParams())
-                .setHeaders(filters.httpHeaders(clientReq.getHeaders()))
+                .setHeaders(Filters.httpHeaders(clientReq.getHeaders()))
                 .setCookies(clientReq.getCookies())
                 .setBody(clientReq.getBody())
                 .build();

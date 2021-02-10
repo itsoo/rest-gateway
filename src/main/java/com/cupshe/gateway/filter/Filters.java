@@ -42,7 +42,7 @@ public class Filters {
         return Mono.just(ByteBufMono.just(buffer));
     }
 
-    public HttpHeaders httpHeaders(HttpHeaders headers) {
+    public static HttpHeaders httpHeaders(HttpHeaders headers) {
         HttpHeaders result = new HttpHeaders();
         headers.forEach((k, v) -> {
             if (Headers.Ignores.nonContains(k)) {

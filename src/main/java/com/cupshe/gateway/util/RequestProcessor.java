@@ -71,14 +71,12 @@ public class RequestProcessor {
                             h.put(k, v);
                         }
                     });
-
                     // set remote-host
                     if (!attr.getHost().contains(Symbols.COLON)) {
                         h.set(Headers.ORIGIN_IP, attr.getHost());
                         h.set(Headers.X_ORIGIN_IP, attr.getHost());
                         h.set(Headers.X_FORWARDED_FOR, attr.getHost());
                     }
-
                     // set call-source
                     h.set(Headers.X_CALL_SOURCE, Headers.Values.X_CALL_SOURCE);
                 });
