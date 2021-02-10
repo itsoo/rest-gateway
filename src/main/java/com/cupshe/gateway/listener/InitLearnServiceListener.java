@@ -46,7 +46,7 @@ public class InitLearnServiceListener {
 
     private void resetHostStatus(HostStatus hostStatus) {
         try {
-            String url = RequestProcessor.getRequestUrl(hostStatus, Symbols.EMPTY);
+            String url = RequestProcessor.getRequestUrlOf(hostStatus, Symbols.EMPTY);
             filters.requestAndResponse(null, url);
             hostStatus.setStatus(true);
         } catch (TimeoutException e) {

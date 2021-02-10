@@ -28,6 +28,6 @@ public class MainFilter extends AbstractFilter {
     @Override
     public void filter(ServerWebExchange exchange) {
         FilterContext.setTraceId(exchange, UuidUtils.createUuid());
-        FilterContext.setRemoteHost(RequestProcessor.getRealOriginIp(exchange));
+        FilterContext.setRemoteHost(RequestProcessor.getRealOriginIpOf(exchange));
     }
 }

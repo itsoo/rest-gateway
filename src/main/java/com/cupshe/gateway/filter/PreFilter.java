@@ -3,6 +3,7 @@ package com.cupshe.gateway.filter;
 import com.cupshe.gateway.config.properties.RestGatewayProperties;
 import com.cupshe.gateway.constant.Headers;
 import com.cupshe.gateway.util.Attributes;
+import com.cupshe.gateway.util.RequestProcessor;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -42,7 +43,7 @@ public class PreFilter extends AbstractFilter {
                 .setContentType(clientReq.getHeaders().getContentType())
                 .setHost(FilterContext.getRemoteHost())
                 .setQueryParams(clientReq.getQueryParams())
-                .setHeaders(Filters.httpHeaders(clientReq.getHeaders()))
+                .setHeaders(RequestProcessor.getHttpHeadersOf(clientReq.getHeaders()))
                 .setCookies(clientReq.getCookies())
                 .setBody(clientReq.getBody())
                 .build();

@@ -40,7 +40,7 @@ public class MainController {
         filters.filterChain(mainFilter, exchange);
         // pre request
         String reqPath = Filters.getPath(exchange);
-        String url = RequestProcessor.getRequestUrl(getRemoteHost(exchange, reqPath), reqPath);
+        String url = RequestProcessor.getRequestUrlOf(getRemoteHost(exchange, reqPath), reqPath);
         Logging.writeRequestPayload(exchange.getRequest(), url);
 
         try {

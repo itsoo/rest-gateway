@@ -5,6 +5,7 @@ import com.cupshe.gateway.constant.Headers;
 import com.cupshe.gateway.constant.Symbols;
 import com.cupshe.gateway.core.HostStatus;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,6 +18,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 
@@ -27,9 +29,23 @@ import static org.springframework.web.reactive.function.client.WebClient.Request
  */
 public class RequestProcessor {
 
-    public static String getRealOriginIp(ServerWebExchange exchange) {
+    public static HttpHeaders getHttpHeadersOf(HttpHeaders headers) {
+        HttpHeaders result = new HttpHeaders();
+        headers.forEach((k, v) -> {
+            if (Headers.Ignores.nonContains(k)) {
+                result.addAll(k, v
+                        .parallelStream()
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.toList()));
+            }
+        });
+
+        return result;
+    }
+
+    public static String getRealOriginIpOf(ServerWebExchange exchange) {
         String result = exchange.getAttribute(Headers.ORIGIN_IP);
-        if (Objects.nonNull(result)) {
+        if (StringUtils.isNotBlank(result)) {
             return result;
         }
 
@@ -50,7 +66,7 @@ public class RequestProcessor {
                     .trim();
         }
 
-        if (Objects.isNull(result)) {
+        if (StringUtils.isBlank(result)) {
             return Headers.Values.UNKNOWN;
         }
 
@@ -96,10 +112,8 @@ public class RequestProcessor {
         return result;
     }
 
-    public static String getRequestUrl(HostStatus hostStatus, String reqPath) {
-        String path = reqPath.startsWith(Symbols.FORWARD_SLASH)
-                ? reqPath
-                : (Symbols.FORWARD_SLASH + reqPath);
+    public static String getRequestUrlOf(HostStatus hostStatus, String reqPath) {
+        String path = StringUtils.appendWithoutStartsWith(reqPath, Symbols.FORWARD_SLASH);
         return hostStatus.getHost().startsWith(Symbols.HTTP_PROTOCOL)
                 ? (hostStatus.getHost() + path)
                 : (Symbols.HTTP_PROTOCOL_PREFIX + hostStatus.getHost() + path);

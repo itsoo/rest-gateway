@@ -1,13 +1,10 @@
 package com.cupshe.gateway.filter;
 
-import com.cupshe.ak.text.StringUtils;
-import com.cupshe.gateway.constant.Headers;
 import com.cupshe.gateway.util.Attributes;
 import com.cupshe.gateway.util.RequestProcessor;
 import com.cupshe.gateway.util.ResponseProcessor;
 import lombok.SneakyThrows;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -21,7 +18,6 @@ import reactor.netty.ByteBufMono;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Filters
@@ -40,20 +36,6 @@ public class Filters {
     public Mono<Mono<DataBuffer>> getModel(ServerHttpResponse resp, String message) {
         DataBuffer buffer = resp.bufferFactory().allocateBuffer().write(message.getBytes());
         return Mono.just(ByteBufMono.just(buffer));
-    }
-
-    public static HttpHeaders httpHeaders(HttpHeaders headers) {
-        HttpHeaders result = new HttpHeaders();
-        headers.forEach((k, v) -> {
-            if (Headers.Ignores.nonContains(k)) {
-                result.addAll(k, v
-                        .parallelStream()
-                        .filter(StringUtils::isNotBlank)
-                        .collect(Collectors.toList()));
-            }
-        });
-
-        return result;
     }
 
     public static String getPath(ServerWebExchange exchange) {
