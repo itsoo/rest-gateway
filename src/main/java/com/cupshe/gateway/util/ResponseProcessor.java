@@ -1,6 +1,7 @@
 package com.cupshe.gateway.util;
 
 import com.cupshe.ak.exception.ExceptionUtils;
+import com.cupshe.gateway.constant.Cors;
 import com.cupshe.gateway.constant.Headers;
 import com.cupshe.gateway.exception.TimeoutException;
 import com.google.common.collect.ImmutableSet;
@@ -21,17 +22,18 @@ import java.util.Set;
  */
 public class ResponseProcessor {
 
-    private static final Set<Class<? extends Exception>> ERROR_CLASSES = ImmutableSet.of(
+    private static final Set<Class<? extends Exception>> TIMEOUT_ERRORS = ImmutableSet.of(
             ConnectException.class,
             ConnectTimeoutException.class,
             ReadTimeoutException.class,
-            WriteTimeoutException.class
-    );
+            WriteTimeoutException.class);
+
+    private static final TimeoutException TIMEOUT_EXCEPTION = new TimeoutException();
 
     public static void rethrow(Throwable t) {
-        for (Class<? extends Exception> errorClass : ERROR_CLASSES) {
+        for (Class<? extends Exception> errorClass : TIMEOUT_ERRORS) {
             if (errorClass.isAssignableFrom(t.getClass())) {
-                ExceptionUtils.rethrow(new TimeoutException());
+                ExceptionUtils.rethrow(TIMEOUT_EXCEPTION);
             }
         }
 
@@ -44,14 +46,12 @@ public class ResponseProcessor {
         HttpHeaders remoteRespHeaders = remoteResp.headers().asHttpHeaders();
         // reset response headers
         remoteRespHeaders.forEach((k, v) -> {
-            if (Headers.Ignores.contains(k)) {
-                return;
-            }
-
-            if (!clientRespHeaders.containsKey(k)) {
-                clientRespHeaders.put(k, v);
-            } else if (!Headers.Cors.contains(k)) {
-                clientRespHeaders.put(k, v);
+            if (Headers.Ignores.nonContains(k)) {
+                if (!clientRespHeaders.containsKey(k)) {
+                    clientRespHeaders.put(k, v);
+                } else if (Cors.nonContains(k)) {
+                    clientRespHeaders.put(k, v);
+                }
             }
         });
     }

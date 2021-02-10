@@ -1,16 +1,11 @@
 package com.cupshe.gateway.filter;
 
 import com.cupshe.gateway.config.properties.RestGatewayProperties;
-import com.cupshe.gateway.constant.Ordered;
 import com.cupshe.gateway.exception.UnavailableException;
 import com.cupshe.gateway.log.Logging;
 import com.google.common.util.concurrent.RateLimiter;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
 
 /**
  * LimiterFilter
@@ -19,27 +14,29 @@ import reactor.core.publisher.Mono;
  * @author zxy
  */
 @Component
-@Order(Ordered.PRE_FIRST)
-public class LimiterFilter implements WebFilter {
+public class LimiterFilter extends AbstractFilter {
 
     private final RateLimiter limiter;
 
-    public LimiterFilter(RestGatewayProperties properties) {
-        limiter = RateLimiter.create(properties.getRateLimiter());
+    private final AbstractFilter next;
+
+    public LimiterFilter(RestGatewayProperties properties, SupportFilter supportFilter) {
+        this.limiter = RateLimiter.create(properties.getRateLimiter());
+        this.next = supportFilter;
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        return doFilter(exchange, chain);
+    public AbstractFilter next() {
+        return next;
     }
 
-    private Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
+    @Override
+    public void filter(ServerWebExchange exchange) {
         if (limiter.tryAcquire()) {
-            return chain.filter(exchange);
+            return;
         }
 
         Logging.writeRequestRateLimiter(exchange.getRequest());
-
         throw new UnavailableException();
     }
 }

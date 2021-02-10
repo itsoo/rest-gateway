@@ -3,6 +3,7 @@ package com.cupshe.gateway.util;
 import com.cupshe.ak.text.StringUtils;
 import com.cupshe.gateway.constant.Headers;
 import com.cupshe.gateway.constant.Symbols;
+import com.cupshe.gateway.core.HostStatus;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -66,17 +67,20 @@ public class RequestProcessor {
                 .cookies(c -> attr.getCookies().forEach(c::addAll))
                 .headers(h -> {
                     attr.getHeaders().forEach((k, v) -> {
-                        if (!Headers.Ignores.contains(k)) {
+                        if (Headers.Ignores.nonContains(k)) {
                             h.put(k, v);
                         }
                     });
-                    h.set(Headers.X_CALL_SOURCE, Headers.Values.X_CALL_SOURCE);
+
                     // set remote-host
                     if (!attr.getHost().contains(Symbols.COLON)) {
                         h.set(Headers.ORIGIN_IP, attr.getHost());
                         h.set(Headers.X_ORIGIN_IP, attr.getHost());
                         h.set(Headers.X_FORWARDED_FOR, attr.getHost());
                     }
+
+                    // set call-source
+                    h.set(Headers.X_CALL_SOURCE, Headers.Values.X_CALL_SOURCE);
                 });
 
         if (Objects.nonNull(attr.getContentType())) {
@@ -92,5 +96,14 @@ public class RequestProcessor {
         }
 
         return result;
+    }
+
+    public static String getRequestUrl(HostStatus hostStatus, String reqPath) {
+        String path = reqPath.startsWith(Symbols.FORWARD_SLASH)
+                ? reqPath
+                : (Symbols.FORWARD_SLASH + reqPath);
+        return hostStatus.getHost().startsWith(Symbols.HTTP_PROTOCOL)
+                ? (hostStatus.getHost() + path)
+                : (Symbols.HTTP_PROTOCOL_PREFIX + hostStatus.getHost() + path);
     }
 }

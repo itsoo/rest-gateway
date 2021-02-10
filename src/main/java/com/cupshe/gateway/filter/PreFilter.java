@@ -2,17 +2,10 @@ package com.cupshe.gateway.filter;
 
 import com.cupshe.gateway.config.properties.RestGatewayProperties;
 import com.cupshe.gateway.constant.Headers;
-import com.cupshe.gateway.constant.Ordered;
 import com.cupshe.gateway.util.Attributes;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
-
-import java.util.Set;
 
 /**
  * PreFilter
@@ -21,26 +14,27 @@ import java.util.Set;
  * @author zxy
  */
 @Component
-@Order(Ordered.FOURTH)
-public class PreFilter implements WebFilter {
+public class PreFilter extends AbstractFilter {
 
-    public PreFilter(RestGatewayProperties properties) {
-        initial(properties.getFilterHeaders());
-    }
+    private final AbstractFilter next;
 
-    private void initial(Set<String> filterHeaders) {
-        Headers.Ignores.HEADERS.addAll(filterHeaders);
+    private final Filters filters;
+
+    public PreFilter(RestGatewayProperties properties, AuthFilter authFilter, Filters filters) {
+        Headers.Ignores.addAll(properties.getFilterHeaders());
+        this.next = authFilter;
+        this.filters = filters;
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        return doFilter(exchange, chain);
+    public AbstractFilter next() {
+        return next;
     }
 
-    private Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
-        Attributes attr = getAttributesOf(exchange, Filters.getTraceId());
-        exchange.getAttributes().put(Filters.ATTRIBUTES_CACHE_KEY, attr);
-        return chain.filter(exchange);
+    @Override
+    public void filter(ServerWebExchange exchange) {
+        String traceId = FilterContext.getTraceId(exchange);
+        FilterContext.setAttributes(getAttributesOf(exchange, traceId));
     }
 
     private Attributes getAttributesOf(ServerWebExchange exchange, String traceId) {
@@ -49,9 +43,9 @@ public class PreFilter implements WebFilter {
                 .setId(traceId)
                 .setMethod(clientReq.getMethod())
                 .setContentType(clientReq.getHeaders().getContentType())
-                .setHost(exchange.getAttribute(Headers.X_ORIGIN_IP))
+                .setHost(FilterContext.getRemoteHost())
                 .setQueryParams(clientReq.getQueryParams())
-                .setHeaders(Filters.httpHeaders(clientReq.getHeaders()))
+                .setHeaders(filters.httpHeaders(clientReq.getHeaders()))
                 .setCookies(clientReq.getCookies())
                 .setBody(clientReq.getBody())
                 .build();

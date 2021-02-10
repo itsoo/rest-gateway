@@ -1,7 +1,6 @@
 package com.cupshe.gateway.constant;
 
 import com.cupshe.ak.text.StringUtils;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import java.util.Set;
@@ -42,6 +41,10 @@ public interface Headers {
 
         Set<String> HEADERS = Sets.newLinkedHashSet();
 
+        static void addAll(Set<String> filterHeaders) {
+            HEADERS.addAll(filterHeaders);
+        }
+
         /**
          * contains key
          *
@@ -51,46 +54,15 @@ public interface Headers {
         static boolean contains(String key) {
             return StringUtils.isBlank(key) || HEADERS.contains(key.toLowerCase());
         }
-    }
-
-    /**
-     * CORS
-     */
-    interface Cors {
-
-        Set<String> HEADERS = ImmutableSet.<String>builder()
-                .add("access-control-allow-origin")
-                .add("access-control-allow-credentials")
-                .add("access-control-allow-headers")
-                .add("access-control-max-age")
-                .build();
 
         /**
-         * contains key
+         * not contains key
          *
          * @param key String
          * @return boolean
          */
-        static boolean contains(String key) {
-            return HEADERS.contains(key.toLowerCase());
-        }
-    }
-
-    /**
-     * Authorization
-     */
-    interface Auth {
-
-        Set<String> HEADERS = ImmutableSet.of("token"); // add your headers
-
-        /**
-         * contains key
-         *
-         * @param key String
-         * @return boolean
-         */
-        static boolean contains(String key) {
-            return HEADERS.contains(key.toLowerCase());
+        static boolean nonContains(String key) {
+            return !contains(key);
         }
     }
 }

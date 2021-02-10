@@ -32,9 +32,10 @@ rest-gateway:
     - comment
   # 路由的配置信息
   routers:
-    - name: comment            # router name
-      lb-type: RR              # 负载均衡策略（round-robin=RR, random=R）
+    - name: comment            # 路由名称
       prefix: /api/v1/comment  # 匹配请求路径的前缀
+      status: true             # 可用状态
+      lb-type: RR              # 负载均衡策略（round-robin=RR, random=R）
       services:                # service 列表
         - 127.0.0.1:8080
         - 127.0.0.1:8081

@@ -6,4 +6,7 @@ package com.cupshe.gateway;
  * @author zxy
  */
 public class MainTests {
+    //---------------------
+    // EMPTY BODY
+    //---------------------
 }

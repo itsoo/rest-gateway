@@ -1,5 +1,6 @@
 package com.cupshe.gateway.core;
 
+import com.cupshe.gateway.core.lb.LoadBalanceType;
 import lombok.Data;
 
 import java.util.List;
@@ -12,35 +13,23 @@ import java.util.List;
 @Data
 public class Router {
 
-    /*** router name */
+    /*** 路由名称 */
     private String name;
 
-    /*** 负载均衡策略（round-robin=RR, random=R） */
+    /*** 匹配请求路径的前缀 */
     private String prefix;
 
-    /*** 匹配请求路径的前缀 */
-    private List<String> services;
+    /*** 可用状态 */
+    private boolean status;
 
     /*** service 列表 */
-    private LoadBalance lbType;
+    private List<String> services;
+
+    /*** 负载均衡策略（round-robin=RR, random=R） */
+    private LoadBalanceType lbType;
 
     public Router() {
-        lbType = LoadBalance.RR;
-    }
-
-    /**
-     * LoadBalance
-     * <ul>
-     *   <li>{@link LoadBalance#RR} (default)</li>
-     *   <li>{@link LoadBalance#R}</li>
-     * </ul>
-     */
-    public enum LoadBalance {
-
-        /*** round-robin */
-        RR,
-
-        /*** random */
-        R
+        this.status = true;
+        this.lbType = LoadBalanceType.RR;
     }
 }

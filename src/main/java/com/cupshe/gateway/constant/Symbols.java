@@ -27,5 +27,7 @@ public interface Symbols {
 
     String COMMA_SPACE = ", ";
 
-    String HTTP_PROTOCOL_PREFIX = "http://";
+    String HTTP_PROTOCOL = "http";
+
+    String HTTP_PROTOCOL_PREFIX = HTTP_PROTOCOL + "://";
 }

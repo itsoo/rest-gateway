@@ -1,21 +1,15 @@
 package com.cupshe.gateway.filter;
 
 import com.cupshe.gateway.config.properties.RestGatewayProperties;
-import com.cupshe.gateway.constant.Headers;
-import com.cupshe.gateway.constant.Ordered;
 import com.cupshe.gateway.exception.ForbiddenException;
 import com.cupshe.gateway.log.Logging;
 import com.cupshe.gateway.util.InetIpUtils;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.Funnels;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
@@ -26,8 +20,7 @@ import java.nio.charset.StandardCharsets;
  * @author zxy
  */
 @Component
-@Order(Ordered.SECOND)
-public class FirewallFilter implements WebFilter {
+public class FirewallFilter extends AbstractFilter {
 
     private final Funnel<CharSequence> f = Funnels.stringFunnel(StandardCharsets.UTF_8);
 
@@ -35,9 +28,12 @@ public class FirewallFilter implements WebFilter {
 
     private final boolean blackEnable;
 
-    public FirewallFilter(RestGatewayProperties properties) {
-        blackEnable = properties.isBlackEnable();
-        initial(properties);
+    private final AbstractFilter next;
+
+    public FirewallFilter(RestGatewayProperties properties, PreFilter preFilter) {
+        this.initial(properties);
+        this.blackEnable = properties.isBlackEnable();
+        this.next = preFilter;
     }
 
     private void initial(RestGatewayProperties properties) {
@@ -47,18 +43,17 @@ public class FirewallFilter implements WebFilter {
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        return doFilter(exchange, chain);
+    public AbstractFilter next() {
+        return next;
     }
 
-    private Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
-        String originIp = exchange.getAttribute(Headers.X_ORIGIN_IP);
+    @Override
+    public void filter(ServerWebExchange exchange) {
+        String originIp = FilterContext.getRemoteHost();
         Assert.notNull(originIp, "'originIp' cannot be null.");
         if (blackEnable && filter.mightContain(originIp)) {
             Logging.writeRequestBlacklist(exchange.getRequest(), originIp);
             throw new ForbiddenException();
         }
-
-        return chain.filter(exchange);
     }
 }

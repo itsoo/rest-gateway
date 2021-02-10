@@ -1,21 +1,17 @@
 package com.cupshe.gateway.filter;
 
 import com.cupshe.gateway.config.properties.RestGatewayProperties;
-import com.cupshe.gateway.constant.Headers;
-import com.cupshe.gateway.constant.Ordered;
+import com.cupshe.gateway.constant.Auth;
 import com.cupshe.gateway.core.Router;
 import com.cupshe.gateway.exception.UnauthorizedException;
 import com.cupshe.gateway.log.Logging;
 import com.cupshe.gateway.util.Attributes;
 import com.google.common.collect.Sets;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,45 +27,44 @@ import java.util.stream.Collectors;
  * @author zxy
  */
 @Component
-@Order(Ordered.THIRD)
-public class AuthFilter implements WebFilter {
+public class AuthFilter extends AbstractFilter {
 
     private final Set<String> noAuthPrefix = Sets.newHashSet();
 
     public AuthFilter(RestGatewayProperties properties) {
-        initial(properties);
+        this.initial(properties.getNonAuth(), properties.getRouters());
     }
 
-    private void initial(RestGatewayProperties properties) {
-        Map<String, String> map = properties.getRouters()
+    private void initial(Set<String> nonAuth, List<Router> routers) {
+        Map<String, String> map = routers
                 .parallelStream()
                 .collect(Collectors.toMap(Router::getName, Router::getPrefix));
-        properties.getNonAuth().forEach(k -> noAuthPrefix.add(map.get(k)));
+        nonAuth.forEach(k -> noAuthPrefix.add(map.get(k)));
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        return doFilter(exchange, chain);
+    public AbstractFilter next() {
+        return null;
     }
 
-    private Mono<Void> doFilter(ServerWebExchange exchange, WebFilterChain chain) {
+    @Override
+    public void filter(ServerWebExchange exchange) {
         String reqPath = Filters.getPath(exchange);
         for (String prefix : noAuthPrefix) {
             if (reqPath.startsWith(prefix)) {
-                return chain.filter(exchange);
+                return;
             }
         }
 
-        Attributes attr = exchange.getAttribute(Filters.ATTRIBUTES_CACHE_KEY);
+        Attributes attr = FilterContext.getAttributes();
         Assert.notNull(attr, "'attributes' cannot be null.");
         for (String k : attr.getHeaders().keySet()) {
-            if (Headers.Auth.contains(k)) {
-                return chain.filter(exchange);
+            if (Auth.contains(k)) {
+                return;
             }
         }
 
         Logging.writeRequestUnauthorized(exchange.getRequest());
-
         throw new UnauthorizedException();
     }
 }
