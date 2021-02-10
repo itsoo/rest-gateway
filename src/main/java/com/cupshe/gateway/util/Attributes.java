@@ -1,6 +1,6 @@
 package com.cupshe.gateway.util;
 
-import com.cupshe.ak.text.StringUtils;
+import com.cupshe.gateway.constant.Symbols;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -14,6 +14,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,13 +37,11 @@ public class Attributes {
 
     private final MultiValueMap<String, String> cookies;
 
-    private final MultiValueMap<String, String> queryParams;
-
     private final Object body;
 
     private Attributes(
             String id, String host, HttpMethod method, MediaType contentType, HttpHeaders headers,
-            MultiValueMap<String, String> cookies, MultiValueMap<String, String> queryParams, Object body) {
+            MultiValueMap<String, String> cookies, Object body) {
 
         this.id = id;
         this.host = host;
@@ -50,11 +49,10 @@ public class Attributes {
         this.contentType = contentType;
         this.headers = headers;
         this.cookies = cookies;
-        this.queryParams = queryParams;
         this.body = body;
     }
 
-    public static AttributeBuilder attributeBuilder() {
+    public static AttributeBuilder attributesBuilder() {
         return new AttributeBuilder();
     }
 
@@ -74,16 +72,17 @@ public class Attributes {
 
         private MultiValueMap<String, HttpCookie> cookies;
 
-        private MultiValueMap<String, String> queryParams;
-
         private Object body;
 
         private AttributeBuilder() {}
 
         public Attributes build() {
             Assert.notNull(method, "'httpMethod' cannot be null.");
-            host = StringUtils.getOrEmpty(host);
-            return new Attributes(id, host, method, contentType, headers, getCookies(), queryParams, body);
+            host = Optional.ofNullable(host).orElse(Symbols.EMPTY);
+            contentType = Optional.ofNullable(contentType).orElse(MediaType.ALL);
+            headers = Optional.ofNullable(headers).orElse(HttpHeaders.EMPTY);
+            cookies = Optional.ofNullable(cookies).orElse(new LinkedMultiValueMap<>());
+            return new Attributes(id, host, method, contentType, headers, getCookies(), body);
         }
 
         private MultiValueMap<String, String> getCookies() {

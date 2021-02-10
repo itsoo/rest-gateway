@@ -1,12 +1,17 @@
 package com.cupshe.gateway.listener;
 
+import com.cupshe.ak.net.UuidUtils;
 import com.cupshe.gateway.constant.Symbols;
 import com.cupshe.gateway.core.HostStatus;
 import com.cupshe.gateway.core.RequestCaller;
 import com.cupshe.gateway.core.lb.LoadBalancer;
 import com.cupshe.gateway.exception.TimeoutException;
+import com.cupshe.gateway.filter.FilterContext;
 import com.cupshe.gateway.filter.Filters;
+import com.cupshe.gateway.util.Attributes;
 import com.cupshe.gateway.util.RequestProcessor;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -37,11 +42,21 @@ public class InitLearnServiceListener {
             return;
         }
 
+        setFilterContext();
+
         for (LoadBalancer lb : routerMap.values()) {
             for (HostStatus hostStatus : lb.getAll()) {
                 resetHostStatus(hostStatus);
             }
         }
+    }
+
+    private void setFilterContext() {
+        FilterContext.setAttributes(Attributes.attributesBuilder()
+                .setId(UuidUtils.createUuid())
+                .setMethod(HttpMethod.GET)
+                .setContentType(MediaType.ALL)
+                .build());
     }
 
     private void resetHostStatus(HostStatus hostStatus) {

@@ -37,12 +37,11 @@ public class PreFilter extends AbstractFilter {
 
     private Attributes getAttributesOf(ServerWebExchange exchange, String traceId) {
         ServerHttpRequest clientReq = exchange.getRequest();
-        return Attributes.attributeBuilder()
+        return Attributes.attributesBuilder()
                 .setId(traceId)
                 .setMethod(clientReq.getMethod())
                 .setContentType(clientReq.getHeaders().getContentType())
                 .setHost(FilterContext.getRemoteHost())
-                .setQueryParams(clientReq.getQueryParams())
                 .setHeaders(RequestProcessor.getHttpHeadersOf(clientReq.getHeaders()))
                 .setCookies(clientReq.getCookies())
                 .setBody(clientReq.getBody())

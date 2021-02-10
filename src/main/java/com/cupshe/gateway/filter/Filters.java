@@ -1,5 +1,6 @@
 package com.cupshe.gateway.filter;
 
+import com.cupshe.gateway.core.Router;
 import com.cupshe.gateway.util.Attributes;
 import com.cupshe.gateway.util.RequestProcessor;
 import com.cupshe.gateway.util.ResponseProcessor;
@@ -7,6 +8,7 @@ import lombok.SneakyThrows;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.BodyExtractors;
@@ -17,6 +19,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -44,6 +47,17 @@ public class Filters {
 
     public static String getPath(ServerHttpRequest req) {
         return req.getURI().getPath();
+    }
+
+    @Nullable
+    public static Router findRouterByName(List<Router> routers, String name) {
+        for (Router router : routers) {
+            if (router.getName().equalsIgnoreCase(name)) {
+                return router;
+            }
+        }
+
+        return null;
     }
 
     public void filterChain(AbstractFilter mainFilter, ServerWebExchange exchange) {
