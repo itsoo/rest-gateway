@@ -60,7 +60,7 @@ public class Filters {
         return null;
     }
 
-    public void filterChain(AbstractFilter mainFilter, ServerWebExchange exchange) {
+    public void chain(AbstractFilter mainFilter, ServerWebExchange exchange) {
         AbstractFilter filter = mainFilter;
         while (filter.hasNext()) {
             filter.filter(exchange);
@@ -69,18 +69,22 @@ public class Filters {
     }
 
     @SneakyThrows
-    public Mono<Void> requestAndResponse(ServerHttpResponse clientResp, String url) {
+    public Mono<ClientResponse> requestAndResponse(String url) {
         Attributes attr = FilterContext.getAttributes();
         Assert.notNull(attr, "'attributes' cannot be null.");
         return RequestProcessor.getRemoteRequestOf(webClient, attr, new URI(url))
                 .exchange()
                 .name(attr.getId())
-                .doOnError(ResponseProcessor::rethrow)
-                .flatMap(r -> convertAndResponse(r, clientResp));
+                .doOnError(ResponseProcessor::rethrow);
+    }
+
+    public Mono<Void> requestAndResponse(ServerHttpResponse clientResp, String url) {
+        return requestAndResponse(url).flatMap(r -> convertAndResponse(r, clientResp));
     }
 
     private Mono<Void> convertAndResponse(ClientResponse remoteResp, ServerHttpResponse clientResp) {
         if (Objects.isNull(clientResp)) {
+            ResponseProcessor.cleanup(remoteResp);
             return Mono.empty();
         }
 

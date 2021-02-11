@@ -37,13 +37,15 @@ public class MainController {
 
     @GetMapping("/**")
     public Mono<Void> main(ServerWebExchange exchange) {
-        filters.filterChain(mainFilter, exchange);
+        filters.chain(mainFilter, exchange);
         // pre request
         String reqPath = Filters.getPath(exchange);
-        String url = RequestProcessor.getRequestUrlOf(getRemoteHost(exchange, reqPath), reqPath);
+        HostStatus remoteHost = getRemoteHost(exchange, reqPath);
+        String url = RequestProcessor.getRequestUrlOf(remoteHost, reqPath);
         Logging.writeRequestPayload(exchange.getRequest(), url);
 
         try {
+            FilterContext.setHostStatus(exchange, remoteHost);
             return filters.requestAndResponse(exchange.getResponse(), url);
         } finally {
             FilterContext.clearAll();
@@ -52,7 +54,6 @@ public class MainController {
 
     private HostStatus getRemoteHost(ServerWebExchange exchange, String reqPath) {
         HostStatus result = caller.next(reqPath);
-        FilterContext.setHostStatus(exchange, result);
         if (HostStatus.isNotSupport(result)) {
             Logging.writeRequestUnsupported(exchange.getRequest());
             throw new UnavailableException();

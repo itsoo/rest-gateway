@@ -13,4 +13,5 @@ spring:
 logging:
   level:
     org.springframework: ERROR
+    reactor.netty: ERROR
     com.cupshe: DEBUG
