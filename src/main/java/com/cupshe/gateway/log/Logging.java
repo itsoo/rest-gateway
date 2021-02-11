@@ -29,6 +29,10 @@ public class Logging {
         log.warn("Rest-gateway request [{}] unsupported.", Filters.getPath(req));
     }
 
+    public static void writeRequestNotFound(ServerHttpRequest req) {
+        log.warn("Rest-gateway request [{}] not-found.", Filters.getPath(req));
+    }
+
     public static void writeRequestBlacklist(ServerHttpRequest req, String originIp) {
         log.warn("Rest-gateway request [{}] black-list [{}].", Filters.getPath(req), originIp);
     }

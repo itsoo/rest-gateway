@@ -2,6 +2,7 @@ package com.cupshe.gateway.filter;
 
 import com.cupshe.gateway.core.RequestCaller;
 import com.cupshe.gateway.core.Router;
+import com.cupshe.gateway.exception.NotFoundException;
 import com.cupshe.gateway.exception.UnavailableException;
 import com.cupshe.gateway.log.Logging;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * SupportFilter
- * <p>Whether the service is degraded or not
+ * <p>Whether the service is supported or not(code 503 or 404)
  *
  * @author zxy
  */
@@ -34,12 +35,17 @@ public class SupportFilter extends AbstractFilter {
     public void filter(ServerWebExchange exchange) {
         String reqPath = Filters.getPath(exchange);
         for (Router r : requestCaller.getRouters()) {
-            if (reqPath.startsWith(r.getPrefix()) && r.isStatus()) {
-                return;
+            if (reqPath.startsWith(r.getPrefix())) {
+                if (r.isStatus()) {
+                    return;
+                }
+
+                Logging.writeRequestUnsupported(exchange.getRequest());
+                throw new UnavailableException();
             }
         }
 
-        Logging.writeRequestUnsupported(exchange.getRequest());
-        throw new UnavailableException();
+        Logging.writeRequestNotFound(exchange.getRequest());
+        throw new NotFoundException();
     }
 }

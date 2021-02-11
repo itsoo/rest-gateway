@@ -3,9 +3,7 @@ package com.cupshe.gateway.controller;
 import com.cupshe.gateway.core.RequestCaller;
 import com.cupshe.gateway.core.Router;
 import com.cupshe.gateway.filter.Filters;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,17 +24,17 @@ public class LearnServiceController {
         this.caller = caller;
     }
 
-    @RequestMapping
+    @GetMapping
     public Flux<Router> list() {
         return Flux.fromIterable(caller.getRouters());
     }
 
-    @RequestMapping("/on/{name}")
+    @PostMapping("/on/{name}")
     public Mono<String> online(@PathVariable String name) {
         return options(name, true);
     }
 
-    @RequestMapping("/off/{name}")
+    @PostMapping("/off/{name}")
     public Mono<String> offline(@PathVariable String name) {
         return options(name, false);
     }
