@@ -1,6 +1,7 @@
 package com.cupshe.gateway.core.lb;
 
 import com.cupshe.gateway.core.HostStatus;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,7 +17,7 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
 
     private final List<HostStatus> services;
 
-    public RoundRobinLoadBalancer(List<String> services) {
+    public RoundRobinLoadBalancer(@NonNull List<String> services) {
         this.services = initial(services);
     }
 

@@ -1,6 +1,7 @@
 package com.cupshe.gateway.core.lb;
 
 import com.cupshe.gateway.core.HostStatus;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -14,7 +15,7 @@ public class RandomLoadBalancer implements LoadBalancer {
 
     private final List<HostStatus> services;
 
-    public RandomLoadBalancer(List<String> services) {
+    public RandomLoadBalancer(@NonNull List<String> services) {
         this.services = initial(services);
     }
 
