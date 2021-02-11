@@ -27,19 +27,6 @@ public interface LoadBalancer {
     }
 
     /**
-     * list of support services
-     *
-     * @param services List of HostStatus
-     * @return List of HostStatus
-     */
-    default List<HostStatus> aliveList(List<HostStatus> services) {
-        return services
-                .parallelStream()
-                .filter(HostStatus::isStatus)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Get next service of service-list
      *
      * @return next remote host

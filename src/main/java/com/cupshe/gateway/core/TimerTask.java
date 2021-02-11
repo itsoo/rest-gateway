@@ -1,7 +1,6 @@
 package com.cupshe.gateway.core;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,33 +11,37 @@ import java.util.function.Consumer;
 
 /**
  * TimerTask
- * <p>抽象的时间片，可用于延迟执行任务，时间单位（秒）
+ * <p>Abstract time slice, which can be used to delay the execution of tasks, time unit (seconds)
  *
  * @author zxy
  */
 @SuppressWarnings("all")
 public class TimerTask<T> {
 
+    /*** pointer */
     private final AtomicInteger i;
 
-    private final Queue<T>[] queues;
+    /*** timer-task */
+    private final Queue<T>[] timerTask;
 
+    /*** timer-executor */
     private final ScheduledExecutorService executor;
 
+    /*** consumer function */
     private final Consumer<T> consumer;
 
     public TimerTask(Consumer<T> consumer) {
         this.i = new AtomicInteger(-1);
-        this.queues = new Queue[60];
+        this.timerTask = new Queue[60];
         this.executor = new ScheduledThreadPoolExecutor(1);
         this.consumer = consumer;
         this.initial();
     }
 
     private void initial() {
-        // init queues
-        for (int j = 0; j < queues.length; j++) {
-            queues[j] = new ConcurrentLinkedQueue<>();
+        // init queues for timer-task
+        for (int j = 0; j < timerTask.length; j++) {
+            timerTask[j] = new ConcurrentLinkedQueue<>();
         }
 
         startLearnServersListener();
@@ -47,21 +50,21 @@ public class TimerTask<T> {
     private void startLearnServersListener() {
         executor.scheduleWithFixedDelay(() -> {
             increment();
-            T t;
-            while (Objects.nonNull((t = poll()))) {
+            // consume timer-task
+            for (T t = poll(); t != null; t = poll()) {
                 consumer.accept(t);
             }
         }, 1L, 1L, TimeUnit.SECONDS);
     }
 
     public void push(T hostStatus, int delay) {
-        int curr = (i.get() + delay) % queues.length;
-        queues[curr].add(hostStatus);
+        int curr = (i.get() + delay) % timerTask.length;
+        timerTask[curr].add(hostStatus);
     }
 
     public T poll() {
         int curr = i.get();
-        return queues[curr].poll();
+        return timerTask[curr].poll();
     }
 
     private void increment() {
@@ -69,7 +72,7 @@ public class TimerTask<T> {
 
         do {
             curr = i.get();
-            next = (curr + 1) % queues.length;
+            next = (curr + 1) % timerTask.length;
         } while (!i.compareAndSet(curr, next));
     }
 
@@ -77,7 +80,7 @@ public class TimerTask<T> {
     public String toString() {
         return "TimerTask(" +
                 "i=" + i +
-                ", queues=" + Arrays.toString(queues) +
+                ", queues=" + Arrays.toString(timerTask) +
                 ')';
     }
 }

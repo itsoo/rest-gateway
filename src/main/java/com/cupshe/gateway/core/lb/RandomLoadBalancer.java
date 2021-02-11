@@ -20,14 +20,17 @@ public class RandomLoadBalancer implements LoadBalancer {
 
     @Override
     public HostStatus next() {
-        final List<HostStatus> list = aliveList(services);
-        if (list.isEmpty()) {
-            return HostStatus.NON_SUPPORT;
+        int next, size = services.size();
+
+        for (int j = 0; j < size; j++) {
+            next = ThreadLocalRandom.current().nextInt(0, size);
+            HostStatus result = services.get(next);
+            if (result.isStatus()) {
+                return result;
+            }
         }
 
-        int next = ThreadLocalRandom.current().nextInt(0, list.size());
-
-        return list.get(next);
+        return HostStatus.NON_SUPPORT;
     }
 
     @Override

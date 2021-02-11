@@ -22,19 +22,21 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
 
     @Override
     public HostStatus next() {
-        final List<HostStatus> list = aliveList(services);
-        if (list.isEmpty()) {
-            return HostStatus.NON_SUPPORT;
+        int curr, next, size = services.size();
+
+        for (int j = 0; j < size; j++) {
+            do {
+                next = curr = i.get();
+                next = ++next >= size ? 0 : next;
+            } while (!i.compareAndSet(curr, next));
+
+            HostStatus result = services.get(next);
+            if (result.isStatus()) {
+                return result;
+            }
         }
 
-        int curr, next, size = list.size();
-
-        do {
-            next = curr = i.get();
-            next = ++next >= size ? 0 : next;
-        } while (!i.compareAndSet(curr, next));
-
-        return list.get(next);
+        return HostStatus.NON_SUPPORT;
     }
 
     @Override
