@@ -20,7 +20,6 @@ import reactor.netty.ByteBufMono;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Filters
@@ -79,19 +78,12 @@ public class Filters {
     }
 
     public Mono<Void> requestAndResponse(ServerHttpResponse clientResp, String url) {
-        return requestAndResponse(url).flatMap(r -> convertAndResponse(r, clientResp));
-    }
-
-    private Mono<Void> convertAndResponse(ClientResponse remoteResp, ServerHttpResponse clientResp) {
-        if (Objects.isNull(clientResp)) {
-            ResponseProcessor.cleanup(remoteResp);
-            return Mono.empty();
-        }
-
-        ResponseProcessor.resetServerHttpResponse(clientResp, remoteResp);
-        return clientResp
-                .writeWith(remoteResp.body(BodyExtractors.toDataBuffers()))
-                .doOnError(t -> ResponseProcessor.cleanup(remoteResp))
-                .doOnCancel(() -> ResponseProcessor.cleanup(remoteResp));
+        return requestAndResponse(url).flatMap(remoteResp -> {
+            ResponseProcessor.resetServerHttpResponse(clientResp, remoteResp);
+            return clientResp
+                    .writeWith(remoteResp.body(BodyExtractors.toDataBuffers()))
+                    .doOnError(t -> ResponseProcessor.cleanup(remoteResp))
+                    .doOnCancel(() -> ResponseProcessor.cleanup(remoteResp));
+        });
     }
 }
