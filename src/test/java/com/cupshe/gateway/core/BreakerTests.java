@@ -13,14 +13,14 @@ public class BreakerTests {
 
     @Test
     public synchronized void test01() throws InterruptedException {
-        TimerTask<HostStatus> task = new TimerTask<>(t -> t.setStatus(true));
+        TimerTask<HostStatus> task = new TimerTask<>(60, t -> t.setStatus(true));
         System.out.println(task);
         wait();
     }
 
     @Test
     public synchronized void test02() throws InterruptedException {
-        TimerTask<HostStatus> task = new TimerTask<>(t -> {
+        TimerTask<HostStatus> task = new TimerTask<>(60, t -> {
 //            System.out.println("start: " + t);
             t.setStatus(false);
 //            System.out.println("  end: " + t);

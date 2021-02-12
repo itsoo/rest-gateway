@@ -30,9 +30,9 @@ public class TimerTask<T> {
     /*** consumer function */
     private final Consumer<T> consumer;
 
-    public TimerTask(Consumer<T> consumer) {
+    public TimerTask(int maxSeconds, Consumer<T> consumer) {
         this.i = new AtomicInteger(-1);
-        this.timerTask = new Queue[60];
+        this.timerTask = new Queue[maxSeconds];
         this.executor = new ScheduledThreadPoolExecutor(1);
         this.consumer = consumer;
         this.initial();

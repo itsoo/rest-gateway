@@ -3,11 +3,12 @@ package com.cupshe.gateway.core;
 import com.cupshe.gateway.config.properties.RestGatewayProperties;
 import com.cupshe.gateway.filter.FilterContext;
 import com.cupshe.gateway.log.Logging;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.RateLimiter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 /**
  * Breaker
@@ -19,14 +20,18 @@ public class Breaker {
 
     private final int defaultDelay;
 
-    private final RateLimiter limiter;
+    private final double rateFailure;
 
     private final TimerTask<HostStatus> timerTask;
 
+    private final Map<HostStatus, RateLimiter> failureLimiter;
+
     public Breaker(RestGatewayProperties properties) {
         this.defaultDelay = properties.getDelayFailure();
-        this.limiter = RateLimiter.create(properties.getRateFailure(), 5, TimeUnit.SECONDS);
-        this.timerTask = new TimerTask<>(t -> t.setStatus(true));
+        this.rateFailure = properties.getRateFailure();
+        // 3600s = 60min = 1h
+        this.timerTask = new TimerTask<>(3600, t -> t.setStatus(true));
+        this.failureLimiter = Maps.newConcurrentMap();
     }
 
     public void execute(ServerWebExchange exchange, HostStatus hostStatus) {
@@ -34,10 +39,13 @@ public class Breaker {
             return;
         }
 
-        if (!limiter.tryAcquire()) {
-            String traceId = FilterContext.getTraceId(exchange);
-            Logging.writeRequestTimeoutBreaker(exchange.getRequest(), hostStatus, traceId);
-            timerTask.push(hostStatus.setStatus(false), defaultDelay);
+        RateLimiter limiter = failureLimiter.computeIfAbsent(hostStatus, k -> RateLimiter.create(rateFailure));
+        if (limiter.tryAcquire()) {
+            return;
         }
+
+        String traceId = FilterContext.getTraceId(exchange);
+        Logging.writeRequestTimeoutBreaker(exchange.getRequest(), hostStatus, traceId);
+        timerTask.push(hostStatus.setStatus(false), defaultDelay);
     }
 }

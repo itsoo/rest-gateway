@@ -2,6 +2,7 @@ package com.cupshe.gateway.filter;
 
 import com.cupshe.ak.net.UuidUtils;
 import com.cupshe.gateway.util.RequestProcessor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -11,6 +12,7 @@ import org.springframework.web.server.ServerWebExchange;
  *
  * @author zxy
  */
+@Primary
 @Component
 public class MainFilter extends AbstractFilter {
 

@@ -3,9 +3,9 @@ package com.cupshe.gateway.controller;
 import com.cupshe.gateway.core.HostStatus;
 import com.cupshe.gateway.core.RequestCaller;
 import com.cupshe.gateway.exception.UnavailableException;
+import com.cupshe.gateway.filter.AbstractFilter;
 import com.cupshe.gateway.filter.FilterContext;
 import com.cupshe.gateway.filter.Filters;
-import com.cupshe.gateway.filter.MainFilter;
 import com.cupshe.gateway.log.Logging;
 import com.cupshe.gateway.util.RequestProcessor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,11 +25,11 @@ public class MainController {
 
     private final RequestCaller caller;
 
-    private final MainFilter mainFilter;
+    private final AbstractFilter mainFilter;
 
     private final Filters filters;
 
-    public MainController(RequestCaller caller, MainFilter mainFilter, Filters filters) {
+    public MainController(RequestCaller caller, AbstractFilter mainFilter, Filters filters) {
         this.caller = caller;
         this.mainFilter = mainFilter;
         this.filters = filters;

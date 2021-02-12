@@ -14,7 +14,6 @@ import com.cupshe.gateway.util.ResponseProcessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.util.Map;
@@ -25,7 +24,7 @@ import java.util.Objects;
  *
  * @author zxy
  */
-@Component
+//@Component
 public class InitLearnServiceListener {
 
     private final RequestCaller caller;
