@@ -10,10 +10,12 @@ import com.cupshe.gateway.filter.FilterContext;
 import com.cupshe.gateway.filter.Filters;
 import com.cupshe.gateway.util.Attributes;
 import com.cupshe.gateway.util.RequestProcessor;
+import com.cupshe.gateway.util.ResponseProcessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.util.Map;
 import java.util.Objects;
@@ -62,10 +64,11 @@ public class InitLearnServiceListener {
     private void resetHostStatus(HostStatus hostStatus) {
         try {
             String url = RequestProcessor.getRequestUrlOf(hostStatus, Symbols.EMPTY);
-            filters.requestAndResponse(url).block();
+            ClientResponse remoteResp = filters.requestAndResponse(url).block();
+            ResponseProcessor.cleanup(remoteResp);
             hostStatus.setStatus(true);
         } catch (TimeoutException e) {
             hostStatus.setStatus(false);
-        }
+        } catch (Exception ignore) {}
     }
 }
