@@ -39,8 +39,8 @@ public class Breaker {
             return;
         }
 
-        RateLimiter limiter = failureLimiter.computeIfAbsent(hostStatus, k -> RateLimiter.create(rateFailure));
-        if (limiter.tryAcquire()) {
+        RateLimiter rl = failureLimiter.computeIfAbsent(hostStatus, k -> RateLimiter.create(rateFailure));
+        if (rl.tryAcquire()) {
             return;
         }
 
