@@ -20,9 +20,9 @@ public class LimiterFilter extends AbstractFilter {
 
     private final AbstractFilter next;
 
-    public LimiterFilter(RestGatewayProperties properties, SupportFilter supportFilter) {
+    public LimiterFilter(RestGatewayProperties properties, SupportFilter nextFilter) {
         this.limiter = RateLimiter.create(properties.getRateLimiter());
-        this.next = supportFilter;
+        this.next = nextFilter;
     }
 
     @Override

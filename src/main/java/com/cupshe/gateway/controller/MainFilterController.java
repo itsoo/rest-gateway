@@ -15,29 +15,29 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * MainController
+ * MainFilterController
  *
  * @author zxy
  */
 @RestController
 @RequestMapping
-public class MainController {
+public class MainFilterController {
 
     private final RequestCaller caller;
 
-    private final AbstractFilter mainFilter;
+    private final AbstractFilter nextFilter;
 
     private final Filters filters;
 
-    public MainController(RequestCaller caller, AbstractFilter mainFilter, Filters filters) {
+    public MainFilterController(RequestCaller caller, AbstractFilter nextFilter, Filters filters) {
         this.caller = caller;
-        this.mainFilter = mainFilter;
+        this.nextFilter = nextFilter;
         this.filters = filters;
     }
 
     @GetMapping("/**")
     public Mono<Void> main(ServerWebExchange exchange) {
-        filters.chain(mainFilter, exchange);
+        filters.chain(nextFilter, exchange);
         // pre request
         String reqPath = Filters.getPath(exchange);
         HostStatus remoteHost = getRemoteHost(exchange, reqPath);

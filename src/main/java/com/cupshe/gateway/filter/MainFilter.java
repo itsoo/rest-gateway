@@ -18,8 +18,8 @@ public class MainFilter extends AbstractFilter {
 
     private final AbstractFilter next;
 
-    public MainFilter(LimiterFilter limiterFilter) {
-        this.next = limiterFilter;
+    public MainFilter(LimiterFilter nextFilter) {
+        this.next = nextFilter;
     }
 
     @Override

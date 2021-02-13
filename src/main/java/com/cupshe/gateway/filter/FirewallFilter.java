@@ -30,10 +30,10 @@ public class FirewallFilter extends AbstractFilter {
 
     private final AbstractFilter next;
 
-    public FirewallFilter(RestGatewayProperties properties, PreFilter preFilter) {
+    public FirewallFilter(RestGatewayProperties properties, PreFilter nextFilter) {
         this.initial(properties);
         this.blackEnable = properties.isBlackEnable();
-        this.next = preFilter;
+        this.next = nextFilter;
     }
 
     private void initial(RestGatewayProperties properties) {

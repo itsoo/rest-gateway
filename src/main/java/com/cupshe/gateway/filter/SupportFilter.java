@@ -17,13 +17,13 @@ import org.springframework.web.server.ServerWebExchange;
 @Component
 public class SupportFilter extends AbstractFilter {
 
-    private final RequestCaller requestCaller;
+    private final RequestCaller caller;
 
     private final AbstractFilter next;
 
-    public SupportFilter(RequestCaller requestCaller, FirewallFilter firewallFilter) {
-        this.requestCaller = requestCaller;
-        this.next = firewallFilter;
+    public SupportFilter(RequestCaller caller, FirewallFilter nextFilter) {
+        this.caller = caller;
+        this.next = nextFilter;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class SupportFilter extends AbstractFilter {
     @Override
     public void filter(ServerWebExchange exchange) {
         String reqPath = Filters.getPath(exchange);
-        for (Router r : requestCaller.getRouters()) {
+        for (Router r : caller.getRouters()) {
             if (reqPath.startsWith(r.getPrefix())) {
                 if (r.isStatus()) {
                     return;

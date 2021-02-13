@@ -22,28 +22,28 @@ public class Logging {
     }
 
     public static void writeRequestRateLimiter(ServerHttpRequest req) {
-        log.info("Rest-gateway request [{}] rate-limiters.", Filters.getPath(req));
+        log.info("Rest-gateway rate-limiters [{}].", Filters.getPath(req));
     }
 
     public static void writeRequestUnsupported(ServerHttpRequest req) {
-        log.warn("Rest-gateway request [{}] unsupported.", Filters.getPath(req));
+        log.warn("Rest-gateway unsupported [{}].", Filters.getPath(req));
     }
 
     public static void writeRequestNotFound(ServerHttpRequest req) {
-        log.warn("Rest-gateway request [{}] not-found.", Filters.getPath(req));
+        log.warn("Rest-gateway not-found [{}].", Filters.getPath(req));
     }
 
     public static void writeRequestBlacklist(ServerHttpRequest req, String originIp) {
-        log.warn("Rest-gateway request [{}] black-list [{}].", Filters.getPath(req), originIp);
+        log.warn("Rest-gateway [{}] black-list [{}].", Filters.getPath(req), originIp);
     }
 
     public static void writeRequestUnauthorized(ServerHttpRequest req) {
-        log.info("Rest-gateway request [{}] unauthorized.", Filters.getPath(req));
+        log.info("Rest-gateway unauthorized [{}].", Filters.getPath(req));
     }
 
-    public static void writeRequestTimeoutBreaker(ServerHttpRequest req, HostStatus hostStatus, String traceId) {
+    public static void writeRequestTimeoutBreaker(ServerHttpRequest req, HostStatus hs, String traceId) {
         MDC.put(BaseConstant.MDC_SESSION_KEY, traceId);
-        log.error("Rest-gateway request [{}] timeout-breaker [{}].", Filters.getPath(req), hostStatus.getHost());
+        log.error("Rest-gateway [{}] timeout-breaker [{}].", Filters.getPath(req), hs.getHost());
     }
 
     public static void writeResponseFailure(Throwable t, String traceId) {

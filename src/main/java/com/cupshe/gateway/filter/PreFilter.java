@@ -19,9 +19,9 @@ public class PreFilter extends AbstractFilter {
 
     private final AbstractFilter next;
 
-    public PreFilter(RestGatewayProperties properties, AuthFilter authFilter) {
+    public PreFilter(RestGatewayProperties properties, AuthFilter nextFilter) {
         Headers.Ignores.addAll(properties.getFilterHeaders());
-        this.next = authFilter;
+        this.next = nextFilter;
     }
 
     @Override

@@ -35,7 +35,7 @@ public abstract class AbstractFilter {
     public abstract void filter(ServerWebExchange exchange);
 
     /**
-     * filter (overload)
+     * filter (another)
      *
      * @param exchange ServerWebExchange
      * @return true:continue / false:end

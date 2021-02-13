@@ -25,16 +25,16 @@ public class TimerTask<T> {
     private final Queue<T>[] timerTask;
 
     /*** timer-executor */
-    private final ScheduledExecutorService executor;
+    private final ScheduledExecutorService scheduledExecutor;
 
     /*** consumer function */
-    private final Consumer<T> consumer;
+    private final Consumer<T> consumerFunction;
 
-    public TimerTask(int maxSeconds, Consumer<T> consumer) {
+    public TimerTask(int maxSeconds, Consumer<T> consumerFunction) {
         this.i = new AtomicInteger(-1);
         this.timerTask = new Queue[maxSeconds];
-        this.executor = new ScheduledThreadPoolExecutor(1);
-        this.consumer = consumer;
+        this.scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+        this.consumerFunction = consumerFunction;
         this.initial();
     }
 
@@ -48,11 +48,11 @@ public class TimerTask<T> {
     }
 
     private void startLearnServersListener() {
-        executor.scheduleWithFixedDelay(() -> {
+        scheduledExecutor.scheduleWithFixedDelay(() -> {
             increment();
             // consume timer-task
             for (T t = poll(); t != null; t = poll()) {
-                consumer.accept(t);
+                consumerFunction.accept(t);
             }
         }, 1L, 1L, TimeUnit.SECONDS);
     }
